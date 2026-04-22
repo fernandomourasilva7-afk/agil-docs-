@@ -11,8 +11,13 @@ create table if not exists clientes (
   cpf text,
   email text,
   slug text unique not null,
+  status text not null default 'link_enviado' check (status in ('link_enviado', 'falta_documentos', 'documentos_enviados', 'fazendo_declaracao', 'ir_finalizado')),
   created_at timestamptz default now()
 );
+
+-- Migração: adicionar status em banco existente
+-- ALTER TABLE clientes ADD COLUMN status text NOT NULL DEFAULT 'link_enviado'
+-- CHECK (status IN ('link_enviado', 'falta_documentos', 'documentos_enviados', 'fazendo_declaracao', 'ir_finalizado'));
 
 -- Tabela de categorias de documentos
 create table if not exists categorias (
