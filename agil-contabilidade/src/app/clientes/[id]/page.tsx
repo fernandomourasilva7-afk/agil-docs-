@@ -52,7 +52,7 @@ export default async function ClienteDetalhePage({ params }: Props) {
   const declarouEnvio = (cliente as { declarou_envio?: boolean }).declarou_envio ?? false;
 
   const c = cliente as {
-    id: string; nome: string; cpf?: string; email?: string; slug: string;
+    id: string; nome: string; telefone?: string; email?: string; slug: string;
     pix_chave?: string | null; pix_tipo?: string | null; pix_nome?: string | null;
     pix_cidade?: string | null; pix_valor?: number | null; pagamento_confirmado?: boolean | null;
   };
@@ -83,7 +83,7 @@ export default async function ClienteDetalhePage({ params }: Props) {
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{c.nome}</h1>
-              {c.cpf && <p className="text-sm text-gray-500 mt-0.5">CPF: {c.cpf}</p>}
+              {c.telefone && <p className="text-sm text-gray-500 mt-0.5">📱 {c.telefone}</p>}
               {c.email && <p className="text-sm text-gray-500">{c.email}</p>}
             </div>
             <div className="flex items-center gap-2 flex-wrap">

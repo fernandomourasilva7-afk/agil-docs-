@@ -3,14 +3,13 @@
 export const dynamic = "force-dynamic";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, UserPlus } from "lucide-react";
+import { ArrowLeft, Loader2, UserPlus, CheckCircle2, MessageCircle, ExternalLink, UserPlus2 } from "lucide-react";
 import Link from "next/link";
 
 const CATEGORIAS_PADRAO = [
@@ -35,12 +34,30 @@ function gerarSlug(nome: string): string {
     .substring(0, 50);
 }
 
+function gerarLinkWhatsApp(telefone: string, nome: string, portalUrl: string): string {
+  const numero = "55" + telefone.replace(/\D/g, "").replace(/^0/, "");
+  const mensagem =
+    `Olá, ${nome}! 👋\n\n` +
+    `Seu contador enviou um link para você enviar os documentos da declaração do Imposto de Renda.\n\n` +
+    `📂 Acesse o link abaixo, clique em cada categoria e faça o upload dos seus arquivos:\n` +
+    `${portalUrl}\n\n` +
+    `Qualquer dúvida, é só chamar!`;
+  return `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+}
+
+type ClienteCriado = {
+  id: string;
+  slug: string;
+  nome: string;
+  telefone: string;
+};
+
 export default function NovoClientePage() {
   const [nome, setNome] = useState("");
-  const [cpf, setCpf] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
   const [carregando, setCarregando] = useState(false);
-  const router = useRouter();
+  const [clienteCriado, setClienteCriado] = useState<ClienteCriado | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,13 +70,18 @@ export default function NovoClientePage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast.error("Sessão expirada. Faça login novamente.");
-      router.push("/");
       return;
     }
 
     const { data: cliente, error: erroCliente } = await supabase
       .from("clientes")
-      .insert({ nome: nome.trim(), cpf: cpf || null, email: email || null, slug, contador_id: user.id })
+      .insert({
+        nome: nome.trim(),
+        telefone: telefone || null,
+        email: email || null,
+        slug,
+        contador_id: user.id,
+      })
       .select()
       .single();
 
@@ -79,8 +101,73 @@ export default function NovoClientePage() {
       return;
     }
 
-    toast.success(`Cliente ${nome} criado com sucesso!`);
-    router.push(`/clientes/${cliente.id}`);
+    setClienteCriado({ id: cliente.id, slug: cliente.slug, nome: nome.trim(), telefone });
+    setCarregando(false);
+  }
+
+  if (clienteCriado) {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+    const portalUrl = `${appUrl}/portal/${clienteCriado.slug}`;
+    const temTelefone = clienteCriado.telefone.replace(/\D/g, "").length >= 10;
+    const whatsAppLink = temTelefone
+      ? gerarLinkWhatsApp(clienteCriado.telefone, clienteCriado.nome, portalUrl)
+      : null;
+
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-lg mx-auto pt-8">
+          <Card className="shadow-sm">
+            <CardContent className="pt-8 pb-8 px-6 text-center">
+              <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 className="w-8 h-8 text-green-600" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-1">
+                Cliente criado com sucesso!
+              </h2>
+              <p className="text-gray-500 text-sm mb-6">
+                As pastas de documentos foram criadas automaticamente para{" "}
+                <span className="font-medium text-gray-700">{clienteCriado.nome}</span>.
+              </p>
+
+              <div className="space-y-3">
+                {whatsAppLink ? (
+                  <a href={whatsAppLink} target="_blank" rel="noopener noreferrer" className="block">
+                    <Button className="w-full gap-2 bg-green-500 hover:bg-green-600 text-white text-base h-12">
+                      <MessageCircle className="w-5 h-5" />
+                      Enviar link pelo WhatsApp
+                    </Button>
+                  </a>
+                ) : (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-700">
+                    Nenhum telefone cadastrado. Copie o link manualmente na tela do cliente.
+                  </div>
+                )}
+
+                <Link href={`/clientes/${clienteCriado.id}`} className="block">
+                  <Button variant="outline" className="w-full gap-2">
+                    <ExternalLink className="w-4 h-4" />
+                    Ver detalhes do cliente
+                  </Button>
+                </Link>
+
+                <button
+                  onClick={() => {
+                    setClienteCriado(null);
+                    setNome("");
+                    setTelefone("");
+                    setEmail("");
+                  }}
+                  className="w-full text-sm text-gray-400 hover:text-gray-600 flex items-center justify-center gap-1.5 py-2"
+                >
+                  <UserPlus2 className="w-4 h-4" />
+                  Criar outro cliente
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -115,17 +202,29 @@ export default function NovoClientePage() {
                   required
                 />
               </div>
+
               <div className="space-y-1">
-                <Label htmlFor="cpf">CPF <span className="text-gray-400 font-normal">(opcional)</span></Label>
+                <Label htmlFor="telefone">
+                  WhatsApp do cliente{" "}
+                  <span className="text-gray-400 font-normal">(opcional)</span>
+                </Label>
                 <Input
-                  id="cpf"
-                  placeholder="000.000.000-00"
-                  value={cpf}
-                  onChange={(e) => setCpf(e.target.value)}
+                  id="telefone"
+                  type="tel"
+                  placeholder="(11) 99999-9999"
+                  value={telefone}
+                  onChange={(e) => setTelefone(e.target.value)}
                 />
+                <p className="text-xs text-gray-400">
+                  Usado para enviar o link de documentos direto pelo WhatsApp.
+                </p>
               </div>
+
               <div className="space-y-1">
-                <Label htmlFor="email">E-mail do cliente <span className="text-gray-400 font-normal">(opcional)</span></Label>
+                <Label htmlFor="email">
+                  E-mail do cliente{" "}
+                  <span className="text-gray-400 font-normal">(opcional)</span>
+                </Label>
                 <Input
                   id="email"
                   type="email"
