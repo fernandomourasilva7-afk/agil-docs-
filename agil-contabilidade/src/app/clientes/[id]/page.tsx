@@ -8,12 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, CheckCircle2, Clock, FileText,
-  FolderOpen, ExternalLink, Bell,
+  FolderOpen, ExternalLink, Bell, Receipt,
 } from "lucide-react";
 import CopiarLink from "@/components/CopiarLink";
 import BaixarDocumento from "@/components/BaixarDocumento";
 import ObservacaoCategoria from "@/components/ObservacaoCategoria";
 import DevolverCliente from "@/components/DevolverCliente";
+import CobrancaIR from "@/components/CobrancaIR";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -39,11 +40,24 @@ export default async function ClienteDetalhePage({ params }: Props) {
     .eq("cliente_id", id)
     .order("ordem");
 
+  const { data: docsFinais } = await supabase
+    .from("documentos_finais")
+    .select("id, nome_arquivo")
+    .eq("cliente_id", id)
+    .order("created_at");
+
   const totalCats = categorias?.length ?? 0;
   const preenchidas = categorias?.filter((c) => c.documentos.length > 0).length ?? 0;
   const pct = totalCats > 0 ? Math.round((preenchidas / totalCats) * 100) : 0;
-  const portalUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/portal/${cliente.slug}`;
   const declarouEnvio = (cliente as { declarou_envio?: boolean }).declarou_envio ?? false;
+
+  const c = cliente as {
+    id: string; nome: string; cpf?: string; email?: string; slug: string;
+    pix_chave?: string | null; pix_tipo?: string | null; pix_nome?: string | null;
+    pix_cidade?: string | null; pix_valor?: number | null; pagamento_confirmado?: boolean | null;
+  };
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -68,15 +82,21 @@ export default async function ClienteDetalhePage({ params }: Props) {
         <div className="mb-6">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{cliente.nome}</h1>
-              {cliente.cpf && <p className="text-sm text-gray-500 mt-0.5">CPF: {cliente.cpf}</p>}
-              {cliente.email && <p className="text-sm text-gray-500">{cliente.email}</p>}
+              <h1 className="text-2xl font-bold text-gray-900">{c.nome}</h1>
+              {c.cpf && <p className="text-sm text-gray-500 mt-0.5">CPF: {c.cpf}</p>}
+              {c.email && <p className="text-sm text-gray-500">{c.email}</p>}
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {declarouEnvio && (
                 <Badge className="bg-blue-100 text-blue-700 border-0 text-sm px-3 py-1">
                   <Bell className="w-3.5 h-3.5 mr-1.5" />
                   Cliente confirmou o envio
+                </Badge>
+              )}
+              {c.pagamento_confirmado && (
+                <Badge className="bg-green-100 text-green-700 border-0 text-sm px-3 py-1">
+                  <Receipt className="w-3.5 h-3.5 mr-1.5" />
+                  Pagamento confirmado
                 </Badge>
               )}
               {pct === 100 ? (
@@ -124,10 +144,10 @@ export default async function ClienteDetalhePage({ params }: Props) {
             <p className="text-sm font-medium text-blue-800 mb-2">Link do cliente</p>
             <div className="flex items-center gap-2 flex-wrap">
               <code className="text-sm bg-white border border-blue-200 rounded px-3 py-1.5 text-blue-700 flex-1 min-w-0 truncate">
-                /portal/{cliente.slug}
+                /portal/{c.slug}
               </code>
-              <CopiarLink slug={cliente.slug} />
-              <a href={`/portal/${cliente.slug}`} target="_blank">
+              <CopiarLink slug={c.slug} />
+              <a href={`/portal/${c.slug}`} target="_blank">
                 <Button size="sm" variant="outline" className="gap-1.5 border-blue-300 text-blue-700 hover:bg-blue-100">
                   <ExternalLink className="w-3.5 h-3.5" />
                   Abrir
@@ -140,7 +160,7 @@ export default async function ClienteDetalhePage({ params }: Props) {
           </CardContent>
         </Card>
 
-        <div className="space-y-3">
+        <div className="space-y-3 mb-8">
           <h2 className="font-semibold text-gray-700">Documentos por categoria</h2>
 
           {categorias?.map((cat) => {
@@ -180,7 +200,6 @@ export default async function ClienteDetalhePage({ params }: Props) {
                   ) : (
                     <p className="text-sm text-gray-400 italic">Nenhum documento enviado ainda.</p>
                   )}
-
                   <ObservacaoCategoria catId={cat.id} observacaoAtual={observacao} />
                 </CardContent>
               </Card>
@@ -188,9 +207,34 @@ export default async function ClienteDetalhePage({ params }: Props) {
           })}
         </div>
 
-        {declarouEnvio && (
-          <DevolverCliente clienteId={cliente.id} />
-        )}
+        {declarouEnvio && <DevolverCliente clienteId={c.id} />}
+
+        {/* Seção de IR Final e Cobrança */}
+        <div className="mt-8 pt-8 border-t border-gray-200">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="bg-green-100 rounded-lg p-1.5">
+              <Receipt className="w-5 h-5 text-green-700" />
+            </div>
+            <h2 className="text-lg font-bold text-gray-900">IR Finalizado — Entrega e Cobrança</h2>
+          </div>
+          <p className="text-sm text-gray-500 mb-6">
+            Após concluir a declaração, anexe os arquivos finais, configure a cobrança via PIX e envie o link de pagamento para o cliente.
+          </p>
+
+          <CobrancaIR
+            clienteId={c.id}
+            clienteSlug={c.slug}
+            userId={user.id}
+            docsIniciais={docsFinais ?? []}
+            pixChaveInicial={c.pix_chave ?? null}
+            pixTipoInicial={c.pix_tipo ?? null}
+            pixNomeInicial={c.pix_nome ?? null}
+            pixCidadeInicial={c.pix_cidade ?? null}
+            pixValorInicial={c.pix_valor ?? null}
+            pagamentoConfirmado={c.pagamento_confirmado ?? false}
+            appUrl={appUrl}
+          />
+        </div>
       </main>
     </div>
   );
