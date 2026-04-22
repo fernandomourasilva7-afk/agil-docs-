@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(git init *)",
+      "Bash(echo 'node_modules/ *)",
+      "Bash(npx shadcn@latest add card badge input label toast)"
+    ]
+  }
+}
