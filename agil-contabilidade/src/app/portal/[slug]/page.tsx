@@ -13,7 +13,7 @@ export default async function PortalClientePage({ params }: Props) {
 
   const { data: cliente } = await supabase
     .from("clientes")
-    .select("id, nome")
+    .select("id, nome, declarou_envio")
     .eq("slug", slug)
     .single();
 
@@ -21,13 +21,20 @@ export default async function PortalClientePage({ params }: Props) {
 
   const { data: categorias } = await supabase
     .from("categorias")
-    .select("id, nome, ordem, documentos(id)")
+    .select("id, nome, ordem, observacao, documentos(id)")
     .eq("cliente_id", cliente.id)
     .order("ordem");
 
   const totalCats = categorias?.length ?? 0;
   const preenchidas = categorias?.filter((c) => c.documentos.length > 0).length ?? 0;
   const tudo_enviado = preenchidas === totalCats && totalCats > 0;
+  const declarouEnvio = (cliente as { declarou_envio?: boolean }).declarou_envio ?? false;
+
+  const observacoes: Record<string, string> = {};
+  categorias?.forEach((c) => {
+    const obs = (c as { observacao?: string | null }).observacao;
+    if (obs) observacoes[c.id] = obs;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -48,12 +55,12 @@ export default async function PortalClientePage({ params }: Props) {
           </p>
         </div>
 
-        {tudo_enviado && (
+        {tudo_enviado && !declarouEnvio && (
           <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 flex items-center gap-3">
             <CheckCircle2 className="w-6 h-6 text-green-600 shrink-0" />
             <div>
-              <p className="font-semibold text-green-800">Tudo certo!</p>
-              <p className="text-sm text-green-600">Todos os documentos foram enviados. Seu contador já pode visualizá-los.</p>
+              <p className="font-semibold text-green-800">Tudo enviado!</p>
+              <p className="text-sm text-green-600">Todas as categorias têm arquivos. Clique em confirmar abaixo para avisar seu contador.</p>
             </div>
           </div>
         )}
@@ -73,6 +80,8 @@ export default async function PortalClientePage({ params }: Props) {
 
         <PortalUpload
           clienteId={cliente.id}
+          declarouEnvio={declarouEnvio}
+          observacoes={observacoes}
           categorias={categorias?.map((c) => ({
             id: c.id,
             nome: c.nome,

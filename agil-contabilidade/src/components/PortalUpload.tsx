@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
-  CheckCircle2, Clock, Upload, Loader2, ChevronDown, ChevronUp, FileText, X
+  CheckCircle2, Clock, Upload, Loader2, ChevronDown, ChevronUp,
+  FileText, X, SendHorizonal, AlertCircle,
 } from "lucide-react";
 
 type Categoria = { id: string; nome: string; quantidade: number };
@@ -15,14 +16,20 @@ type Categoria = { id: string; nome: string; quantidade: number };
 export default function PortalUpload({
   clienteId,
   categorias: catInicial,
+  declarouEnvio: declarouEnvioInicial,
+  observacoes,
 }: {
   clienteId: string;
   categorias: Categoria[];
+  declarouEnvio: boolean;
+  observacoes: Record<string, string>;
 }) {
   const [categorias, setCategorias] = useState(catInicial);
   const [aberta, setAberta] = useState<string | null>(null);
   const [enviando, setEnviando] = useState<string | null>(null);
   const [arquivosSelecionados, setArquivosSelecionados] = useState<Record<string, File[]>>({});
+  const [declarouEnvio, setDeclarouEnvio] = useState(declarouEnvioInicial);
+  const [confirmando, setConfirmando] = useState(false);
   const inputRefs = useRef<Record<string, HTMLInputElement>>({});
 
   function toggleCategoria(id: string) {
@@ -95,6 +102,23 @@ export default function PortalUpload({
     setEnviando(null);
   }
 
+  async function confirmarEnvio() {
+    setConfirmando(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.rpc("confirmar_envio_cliente", {
+        p_cliente_id: clienteId,
+      });
+      if (error) throw error;
+      setDeclarouEnvio(true);
+      toast.success("Envio confirmado! Seu contador já foi avisado.");
+    } catch {
+      toast.error("Erro ao confirmar. Tente novamente.");
+    } finally {
+      setConfirmando(false);
+    }
+  }
+
   return (
     <div className="space-y-3">
       {categorias.map((cat) => {
@@ -102,11 +126,18 @@ export default function PortalUpload({
         const isAberta = aberta === cat.id;
         const estaEnviando = enviando === cat.id;
         const selecionados = arquivosSelecionados[cat.id] ?? [];
+        const observacao = observacoes[cat.id];
 
         return (
           <Card
             key={cat.id}
-            className={`border transition-all ${temDocs ? "border-green-200 bg-green-50/30" : "border-gray-200 bg-white"}`}
+            className={`border transition-all ${
+              observacao
+                ? "border-yellow-300 bg-yellow-50/40"
+                : temDocs
+                ? "border-green-200 bg-green-50/30"
+                : "border-gray-200 bg-white"
+            }`}
           >
             <button
               className="w-full text-left"
@@ -114,20 +145,25 @@ export default function PortalUpload({
             >
               <CardContent className="py-4 px-5 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  {temDocs ? (
+                  {observacao ? (
+                    <AlertCircle className="w-5 h-5 text-yellow-500 shrink-0" />
+                  ) : temDocs ? (
                     <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
                   ) : (
                     <Clock className="w-5 h-5 text-gray-300 shrink-0" />
                   )}
                   <div className="min-w-0">
                     <p className="font-medium text-gray-800 text-sm">{cat.nome}</p>
-                    {temDocs && (
+                    {observacao && (
+                      <p className="text-xs text-yellow-700 font-medium">Contador pediu atenção aqui</p>
+                    )}
+                    {!observacao && temDocs && (
                       <p className="text-xs text-green-600">{cat.quantidade} arquivo{cat.quantidade > 1 ? "s" : ""} enviado{cat.quantidade > 1 ? "s" : ""}</p>
                     )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  {!temDocs && (
+                  {!temDocs && !observacao && (
                     <Badge variant="secondary" className="text-xs hidden sm:flex">Pendente</Badge>
                   )}
                   {isAberta ? (
@@ -141,6 +177,13 @@ export default function PortalUpload({
 
             {isAberta && (
               <div className="border-t border-gray-100 px-5 pb-4 pt-3">
+                {observacao && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2.5 mb-3">
+                    <p className="text-xs font-semibold text-yellow-800 mb-0.5">Observação do contador:</p>
+                    <p className="text-sm text-yellow-800">{observacao}</p>
+                  </div>
+                )}
+
                 <input
                   ref={(el) => { if (el) inputRefs.current[cat.id] = el; }}
                   type="file"
@@ -201,6 +244,37 @@ export default function PortalUpload({
           </Card>
         );
       })}
+
+      <div className="mt-6 pt-4">
+        {declarouEnvio ? (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
+            <CheckCircle2 className="w-6 h-6 text-green-600 shrink-0" />
+            <div>
+              <p className="font-semibold text-green-800">Envio confirmado!</p>
+              <p className="text-sm text-green-600">Seu contador já foi avisado e irá revisar seus documentos.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <p className="text-sm font-medium text-blue-800 mb-1">Terminou de enviar?</p>
+            <p className="text-xs text-blue-600 mb-3">
+              Clique abaixo para confirmar que enviou seus documentos. Mesmo que não tenha enviado tudo, seu contador poderá verificar e pedir o que faltou.
+            </p>
+            <Button
+              onClick={confirmarEnvio}
+              disabled={confirmando}
+              className="gap-2 w-full sm:w-auto"
+            >
+              {confirmando ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <SendHorizonal className="w-4 h-4" />
+              )}
+              Confirmar que enviei meus documentos
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

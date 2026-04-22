@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  ArrowLeft, Copy, CheckCircle2, Clock, FileText,
-  Download, FolderOpen, ExternalLink
+  ArrowLeft, CheckCircle2, Clock, FileText,
+  FolderOpen, ExternalLink, Bell,
 } from "lucide-react";
 import CopiarLink from "@/components/CopiarLink";
 import BaixarDocumento from "@/components/BaixarDocumento";
+import ObservacaoCategoria from "@/components/ObservacaoCategoria";
+import DevolverCliente from "@/components/DevolverCliente";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -41,6 +43,7 @@ export default async function ClienteDetalhePage({ params }: Props) {
   const preenchidas = categorias?.filter((c) => c.documentos.length > 0).length ?? 0;
   const pct = totalCats > 0 ? Math.round((preenchidas / totalCats) * 100) : 0;
   const portalUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/portal/${cliente.slug}`;
+  const declarouEnvio = (cliente as { declarou_envio?: boolean }).declarou_envio ?? false;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -69,7 +72,13 @@ export default async function ClienteDetalhePage({ params }: Props) {
               {cliente.cpf && <p className="text-sm text-gray-500 mt-0.5">CPF: {cliente.cpf}</p>}
               {cliente.email && <p className="text-sm text-gray-500">{cliente.email}</p>}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              {declarouEnvio && (
+                <Badge className="bg-blue-100 text-blue-700 border-0 text-sm px-3 py-1">
+                  <Bell className="w-3.5 h-3.5 mr-1.5" />
+                  Cliente confirmou o envio
+                </Badge>
+              )}
               {pct === 100 ? (
                 <Badge className="bg-green-100 text-green-700 border-0 text-sm px-3 py-1">
                   <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
@@ -98,6 +107,18 @@ export default async function ClienteDetalhePage({ params }: Props) {
           </div>
         </div>
 
+        {declarouEnvio && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start gap-3">
+            <Bell className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-blue-800">O cliente confirmou o envio dos documentos</p>
+              <p className="text-sm text-blue-600 mt-0.5">
+                Revise os arquivos abaixo. Se precisar de algo a mais, adicione uma observação na categoria e clique em &quot;Devolver ao cliente&quot;.
+              </p>
+            </div>
+          </div>
+        )}
+
         <Card className="mb-6 border-blue-200 bg-blue-50">
           <CardContent className="pt-4 pb-4 px-5">
             <p className="text-sm font-medium text-blue-800 mb-2">Link do cliente</p>
@@ -124,6 +145,7 @@ export default async function ClienteDetalhePage({ params }: Props) {
 
           {categorias?.map((cat) => {
             const temDocs = cat.documentos.length > 0;
+            const observacao = (cat as { observacao?: string | null }).observacao ?? null;
             return (
               <Card key={cat.id} className={`border ${temDocs ? "border-green-200" : "border-gray-200"}`}>
                 <CardHeader className="py-3 px-5 pb-0">
@@ -158,11 +180,17 @@ export default async function ClienteDetalhePage({ params }: Props) {
                   ) : (
                     <p className="text-sm text-gray-400 italic">Nenhum documento enviado ainda.</p>
                   )}
+
+                  <ObservacaoCategoria catId={cat.id} observacaoAtual={observacao} />
                 </CardContent>
               </Card>
             );
           })}
         </div>
+
+        {declarouEnvio && (
+          <DevolverCliente clienteId={cliente.id} />
+        )}
       </main>
     </div>
   );
