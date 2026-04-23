@@ -58,6 +58,7 @@ export default function NovoClientePage() {
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
+  const [honorario, setHonorario] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [clienteCriado, setClienteCriado] = useState<ClienteCriado | null>(null);
   const router = useRouter();
@@ -100,6 +101,7 @@ export default function NovoClientePage() {
         email: email || null,
         slug,
         contador_id: user.id,
+        valor_honorario: honorario ? parseFloat(honorario.replace(",", ".")) : null,
       })
       .select()
       .single();
@@ -175,6 +177,7 @@ export default function NovoClientePage() {
                     setNome("");
                     setTelefone("");
                     setEmail("");
+                    setHonorario("");
                   }}
                   className="w-full text-sm text-gray-400 hover:text-gray-600 flex items-center justify-center gap-1.5 py-2"
                 >
@@ -246,6 +249,29 @@ export default function NovoClientePage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="honorario">
+                  Honorário{" "}
+                  <span className="text-gray-400 font-normal">(opcional)</span>
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">R$</span>
+                  <Input
+                    id="honorario"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0,00"
+                    value={honorario}
+                    onChange={(e) => setHonorario(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <p className="text-xs text-gray-400">
+                  Valor cobrado pela declaração. Usado nas métricas de receita.
+                </p>
               </div>
 
               <div className="bg-teal-50 rounded-lg p-3 text-sm text-teal-700">

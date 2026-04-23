@@ -128,6 +128,7 @@ export default function LandingPage() {
   const [crc, setCrc] = useState("");
   const [senhaCad, setSenhaCad] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [planoSelecionado, setPlanoSelecionado] = useState("free");
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data: { user } }) => {
@@ -143,6 +144,7 @@ export default function LandingPage() {
 
   function abrirModal(m: "entrar" | "cadastrar") {
     setModo(m);
+    setPlanoSelecionado("free");
     setModalAberto(true);
   }
 
@@ -167,7 +169,14 @@ export default function LandingPage() {
     setCarregando(true);
     try {
       await registrarContador({ nome, email: emailCad, telefone, crc, senha: senhaCad });
-      toast.success("Conta criada! Verifique seu e-mail para confirmar o cadastro.");
+      if (planoSelecionado !== "free") {
+        const planoInfo = planos.find((p) => p.key === planoSelecionado);
+        const msg = `Olá! Acabei de criar minha conta no Ágil Docs e gostaria de ativar o plano ${planoInfo?.nome} (${planoInfo?.preco}${planoInfo?.periodo}). Meu e-mail é: ${emailCad}`;
+        window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, "_blank");
+        toast.success(`Conta criada! Você será redirecionado para o WhatsApp para ativar o plano ${planoInfo?.nome}.`);
+      } else {
+        toast.success("Conta criada! Verifique seu e-mail para confirmar o cadastro.");
+      }
       setModo("entrar");
       setEmail(emailCad);
     } catch (err: unknown) {
@@ -204,76 +213,87 @@ export default function LandingPage() {
       </nav>
 
       {/* ── HERO ── */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 pt-16 pb-20">
-        {/* Background blobs */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-teal-600/10 blur-[120px]" />
-          <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-teal-500/5 blur-[80px]" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-slate-700/20 blur-[80px]" />
+      <section className="relative min-h-screen flex items-center overflow-hidden pt-16">
+        {/* Imagem de fundo — substitua a URL pela sua foto */}
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=1920&q=80"
+            alt=""
+            className="w-full h-full object-cover object-center"
+          />
+          {/* Camada escura base */}
+          <div className="absolute inset-0 bg-slate-950/60" />
+          {/* Overlay gradiente: mais escuro à esquerda */}
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-950/50" />
+          {/* Fade para a próxima seção */}
+          <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-slate-950 to-transparent" />
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/30 text-teal-400 text-xs font-semibold px-4 py-1.5 rounded-full mb-8 tracking-wide uppercase">
-            <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
-            O sistema dos contadores de alto desempenho
-          </div>
+        {/* Conteúdo — alinhado à esquerda */}
+        <div className="relative z-10 w-full max-w-6xl mx-auto px-6 lg:px-10 py-24">
+          <div className="max-w-2xl">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/30 text-teal-400 text-xs font-semibold px-4 py-1.5 rounded-full mb-8 tracking-wide uppercase">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
+              O sistema dos contadores de alto desempenho
+            </div>
 
-          {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-[1.05] mb-6">
-            Contadores de Alto{" "}
-            <span className="bg-gradient-to-r from-teal-400 to-cyan-300 bg-clip-text text-transparent">
-              Desempenho
-            </span>{" "}
-            Têm Sistema.{" "}
-            <br className="hidden sm:block" />
-            Você Também Pode.
-          </h1>
+            {/* Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-[68px] font-black tracking-tight leading-[1.05] mb-6">
+              Contadores de Alto{" "}
+              <span className="bg-gradient-to-r from-teal-400 to-cyan-300 bg-clip-text text-transparent">
+                Desempenho
+              </span>{" "}
+              Têm Sistema.{" "}
+              <br className="hidden sm:block" />
+              Você Também Pode.
+            </h1>
 
-          {/* Subheadline */}
-          <p className="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
-            Pare de depender de WhatsApp e sorte para receber documentos do IR.
-            Com Ágil Docs, você centraliza tudo, acompanha em tempo real e entrega
-            declarações <span className="text-white font-medium">sem estresse e sem atraso</span>.
-          </p>
+            {/* Subheadline */}
+            <p className="text-slate-300 text-lg sm:text-xl leading-relaxed mb-10">
+              Profissionais de alto desempenho não dependem de sorte — eles têm sistema.
+              Com Ágil Docs, você centraliza documentos, elimina o caos e entrega
+              declarações com a <span className="text-white font-semibold">eficiência que seus clientes merecem</span>.
+            </p>
 
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-            <button
-              onClick={() => abrirModal("cadastrar")}
-              className="group flex items-center gap-2 bg-teal-600 hover:bg-teal-500 text-white font-semibold text-base px-8 py-3.5 rounded-xl transition-all shadow-lg shadow-teal-600/25 hover:shadow-teal-500/40"
-            >
-              Começar grátis agora
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-            </button>
-            <button
-              onClick={() => abrirModal("entrar")}
-              className="flex items-center gap-2 border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white font-medium text-base px-8 py-3.5 rounded-xl transition-all"
-            >
-              Já tenho conta
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row items-start gap-4 mb-12">
+              <button
+                onClick={() => abrirModal("cadastrar")}
+                className="group flex items-center gap-2 bg-teal-600 hover:bg-teal-500 text-white font-semibold text-base px-8 py-3.5 rounded-xl transition-all shadow-xl shadow-teal-600/30 hover:shadow-teal-500/40"
+              >
+                Começar grátis agora
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+              <button
+                onClick={() => abrirModal("entrar")}
+                className="flex items-center gap-2 border border-slate-600 hover:border-slate-400 bg-slate-900/60 backdrop-blur-sm text-slate-300 hover:text-white font-medium text-base px-8 py-3.5 rounded-xl transition-all"
+              >
+                Já tenho conta
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
 
-          {/* Stats */}
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-500">
-            {[
-              "Portal sem login para o cliente",
-              "8 categorias do IR",
-              "Grátis para começar",
-            ].map((s) => (
-              <div key={s} className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-teal-500 shrink-0" />
-                {s}
-              </div>
-            ))}
+            {/* Trust signals */}
+            <div className="flex flex-wrap items-center gap-5 text-sm text-slate-400">
+              {[
+                "Portal sem login para o cliente",
+                "8 categorias do IR",
+                "Grátis para começar",
+              ].map((s) => (
+                <div key={s} className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-teal-500 shrink-0" />
+                  {s}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-40">
-          <div className="w-px h-8 bg-gradient-to-b from-transparent to-slate-500" />
-          <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-30">
+          <div className="w-px h-8 bg-gradient-to-b from-transparent to-slate-400" />
+          <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
         </div>
       </section>
 
@@ -281,13 +301,13 @@ export default function LandingPage() {
       <section className="py-24 px-4 bg-white text-gray-900">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-xs font-semibold px-4 py-1.5 rounded-full mb-5 uppercase tracking-wide">
+            <div className="inline-flex items-center gap-2 bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold px-4 py-1.5 rounded-full mb-5 uppercase tracking-wide">
               <AlertTriangle className="w-3.5 h-3.5" />
               Você ainda opera assim?
             </div>
             <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900 mb-4">
               A desordem tem um custo que{" "}
-              <span className="text-red-500">você ainda não calculou</span>
+              <span className="text-gray-500">você ainda não calculou</span>
             </h2>
             <p className="text-gray-500 text-lg max-w-xl mx-auto">
               Cada documento perdido, cada cliente cobrado três vezes, cada declaração atrasada — tudo isso tem uma única causa.
@@ -296,8 +316,8 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {dores.map(({ icon: Icon, titulo, descricao }) => (
-              <div key={titulo} className="bg-red-50 border border-red-100 rounded-2xl p-6">
-                <div className="bg-red-100 text-red-500 rounded-xl p-2.5 w-fit mb-4">
+              <div key={titulo} className="bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                <div className="bg-slate-200 text-slate-600 rounded-xl p-2.5 w-fit mb-4">
                   <Icon className="w-5 h-5" />
                 </div>
                 <h3 className="font-bold text-gray-900 mb-2 text-base">{titulo}</h3>
@@ -532,20 +552,25 @@ export default function LandingPage() {
 
       {/* ── MODAL DE LOGIN/CADASTRO ── */}
       <Dialog open={modalAberto} onOpenChange={setModalAberto}>
-        <DialogContent className="sm:max-w-sm overflow-y-auto max-h-[92vh]">
+        <DialogContent
+          className={
+            modo === "cadastrar"
+              ? "sm:max-w-5xl p-0 gap-0 overflow-hidden max-h-[92vh]"
+              : "sm:max-w-sm overflow-y-auto max-h-[92vh]"
+          }
+        >
           <DialogTitle className="sr-only">
             {modo === "entrar" ? "Entrar na conta" : "Criar conta"}
           </DialogTitle>
 
-          <div className="flex items-center gap-2 mb-1">
-            <div className="bg-teal-500 text-white rounded-lg p-1.5">
-              <FolderOpen className="w-4 h-4" />
-            </div>
-            <span className="font-bold text-gray-900 text-sm">Ágil Docs</span>
-          </div>
-
           {modo === "entrar" ? (
             <>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="bg-teal-500 text-white rounded-lg p-1.5">
+                  <FolderOpen className="w-4 h-4" />
+                </div>
+                <span className="font-bold text-gray-900 text-sm">Ágil Docs</span>
+              </div>
               <div className="mb-5">
                 <h2 className="text-xl font-black text-gray-900">Bem-vindo de volta</h2>
                 <p className="text-sm text-gray-400 mt-0.5">Entre para acessar seu painel</p>
@@ -569,61 +594,128 @@ export default function LandingPage() {
                   Entrar
                 </Button>
               </form>
+              <p className="mt-4 text-center text-sm text-gray-400">
+                Não tem conta?{" "}
+                <button onClick={() => setModo("cadastrar")} className="text-teal-600 hover:underline font-medium">
+                  Criar agora
+                </button>
+              </p>
             </>
           ) : (
-            <>
-              <div className="mb-4">
-                <h2 className="text-xl font-black text-gray-900">Criar conta grátis</h2>
-                <p className="text-sm text-gray-400 mt-0.5">Leva menos de 2 minutos</p>
-              </div>
-              <form onSubmit={handleCadastrar} className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="nome">Nome completo *</Label>
-                  <Input id="nome" placeholder="João Silva" value={nome} onChange={(e) => setNome(e.target.value)} required />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="emailCad">E-mail *</Label>
-                  <Input id="emailCad" type="email" placeholder="contador@email.com" value={emailCad} onChange={(e) => setEmailCad(e.target.value)} required />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="telefone">Telefone *</Label>
-                  <Input id="telefone" type="tel" placeholder="(11) 99999-9999" value={telefone} onChange={(e) => setTelefone(e.target.value)} required />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="crc">CRC *</Label>
-                  <Input id="crc" placeholder="CRC/SP-123456" value={crc} onChange={(e) => setCrc(e.target.value)} required />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="senhaCad">Senha *</Label>
-                  <div className="relative">
-                    <Input id="senhaCad" type={mostrarSenha ? "text" : "password"} placeholder="Mínimo 6 caracteres" value={senhaCad} onChange={(e) => setSenhaCad(e.target.value)} required minLength={6} className="pr-10" />
-                    <button type="button" onClick={() => setMostrarSenha(!mostrarSenha)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                      {mostrarSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
+            <div className="grid grid-cols-1 lg:grid-cols-[5fr_7fr] h-full">
+              {/* Painel esquerdo — planos (só desktop) */}
+              <div className="hidden lg:flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-teal-950 p-8 overflow-y-auto">
+                <div className="flex items-center gap-2 mb-7">
+                  <div className="bg-teal-500 text-white rounded-lg p-1.5">
+                    <FolderOpen className="w-4 h-4" />
                   </div>
+                  <span className="font-bold text-white text-sm">Ágil Docs</span>
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="confirmarSenha">Confirmar senha *</Label>
-                  <Input id="confirmarSenha" type={mostrarSenha ? "text" : "password"} placeholder="Repita a senha" value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} required minLength={6} />
-                  {confirmarSenha && senhaCad !== confirmarSenha && (
-                    <p className="text-xs text-red-500">As senhas não coincidem</p>
-                  )}
+                <h3 className="text-xl font-black text-white mb-1">Escolha seu plano</h3>
+                <p className="text-slate-400 text-sm mb-6">Comece grátis. Upgrade quando crescer.</p>
+                <div className="space-y-3 flex-1">
+                  {planos.map((plano) => {
+                    const selecionado = planoSelecionado === plano.key;
+                    return (
+                      <button
+                        key={plano.key}
+                        type="button"
+                        onClick={() => setPlanoSelecionado(plano.key)}
+                        className={`w-full text-left rounded-xl p-4 transition-all ${
+                          selecionado
+                            ? "bg-teal-500/25 border-2 border-teal-400 shadow-lg shadow-teal-500/10"
+                            : "bg-slate-800/60 border border-slate-700/50 hover:border-slate-500/70 hover:bg-slate-700/50"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            <span className={`font-bold text-sm ${selecionado ? "text-teal-300" : "text-white"}`}>
+                              {plano.nome}
+                            </span>
+                            {plano.destaque && (
+                              <span className="bg-teal-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+                                Popular
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`font-black text-sm ${selecionado ? "text-teal-300" : "text-white"}`}>
+                              {plano.preco}{plano.periodo}
+                            </span>
+                            {selecionado && (
+                              <div className="w-4 h-4 rounded-full bg-teal-400 flex items-center justify-center shrink-0">
+                                <Check className="w-2.5 h-2.5 text-slate-900" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <p className={`text-xs ${selecionado ? "text-teal-400" : "text-teal-500"}`}>{plano.limite}</p>
+                      </button>
+                    );
+                  })}
                 </div>
-                <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white h-10" disabled={carregando}>
-                  {carregando && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Criar conta grátis
-                </Button>
-              </form>
-            </>
-          )}
+                <p className="text-slate-600 text-xs mt-6">Sem cartão de crédito · Pagamento via PIX</p>
+              </div>
 
-          <p className="mt-4 text-center text-sm text-gray-400">
-            {modo === "entrar" ? (
-              <>Não tem conta?{" "}<button onClick={() => setModo("cadastrar")} className="text-teal-600 hover:underline font-medium">Criar agora</button></>
-            ) : (
-              <>Já tem conta?{" "}<button onClick={() => setModo("entrar")} className="text-teal-600 hover:underline font-medium">Entrar</button></>
-            )}
-          </p>
+              {/* Painel direito — formulário */}
+              <div className="p-6 sm:p-8 overflow-y-auto">
+                <div className="flex items-center gap-2 mb-4 lg:hidden">
+                  <div className="bg-teal-500 text-white rounded-lg p-1.5">
+                    <FolderOpen className="w-4 h-4" />
+                  </div>
+                  <span className="font-bold text-gray-900 text-sm">Ágil Docs</span>
+                </div>
+                <div className="mb-4">
+                  <h2 className="text-xl font-black text-gray-900">Criar conta grátis</h2>
+                  <p className="text-sm text-gray-400 mt-0.5">Leva menos de 2 minutos</p>
+                </div>
+                <form onSubmit={handleCadastrar} className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="nome">Nome completo *</Label>
+                    <Input id="nome" placeholder="João Silva" value={nome} onChange={(e) => setNome(e.target.value)} required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="emailCad">E-mail *</Label>
+                    <Input id="emailCad" type="email" placeholder="contador@email.com" value={emailCad} onChange={(e) => setEmailCad(e.target.value)} required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="telefone">Telefone *</Label>
+                    <Input id="telefone" type="tel" placeholder="(11) 99999-9999" value={telefone} onChange={(e) => setTelefone(e.target.value)} required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="crc">CRC *</Label>
+                    <Input id="crc" placeholder="CRC/SP-123456" value={crc} onChange={(e) => setCrc(e.target.value)} required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="senhaCad">Senha *</Label>
+                    <div className="relative">
+                      <Input id="senhaCad" type={mostrarSenha ? "text" : "password"} placeholder="Mínimo 6 caracteres" value={senhaCad} onChange={(e) => setSenhaCad(e.target.value)} required minLength={6} className="pr-10" />
+                      <button type="button" onClick={() => setMostrarSenha(!mostrarSenha)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        {mostrarSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="confirmarSenha">Confirmar senha *</Label>
+                    <Input id="confirmarSenha" type={mostrarSenha ? "text" : "password"} placeholder="Repita a senha" value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} required minLength={6} />
+                    {confirmarSenha && senhaCad !== confirmarSenha && (
+                      <p className="text-xs text-orange-500">As senhas não coincidem</p>
+                    )}
+                  </div>
+                  <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white h-10" disabled={carregando}>
+                    {carregando && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    {planoSelecionado === "free" ? "Criar conta grátis" : `Criar conta · Plano ${planos.find((p) => p.key === planoSelecionado)?.nome}`}
+                  </Button>
+                </form>
+                <p className="mt-4 text-center text-sm text-gray-400">
+                  Já tem conta?{" "}
+                  <button onClick={() => setModo("entrar")} className="text-teal-600 hover:underline font-medium">
+                    Entrar
+                  </button>
+                </p>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
