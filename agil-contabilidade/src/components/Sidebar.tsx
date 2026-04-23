@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { FolderOpen, LayoutDashboard, UserPlus, LogOut, X, Menu, Sparkles, BarChart2 } from 'lucide-react'
+import { FolderOpen, LayoutDashboard, UserPlus, LogOut, X, Menu, Sparkles, BarChart2, Crown } from 'lucide-react'
+
+const ADMIN_EMAIL = 'fernandomourasilva7@gmail.com'
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -13,7 +15,7 @@ const navItems = [
   { href: '/plano', icon: Sparkles, label: 'Meu Plano' },
 ]
 
-function NavContent({ onClose }: { onClose?: () => void }) {
+function NavContent({ onClose, isAdmin }: { onClose?: () => void; isAdmin: boolean }) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -59,6 +61,24 @@ function NavContent({ onClose }: { onClose?: () => void }) {
             </Link>
           )
         })}
+
+        {isAdmin && (
+          <>
+            <div className="mx-3 my-2 border-t border-slate-700/60" />
+            <Link
+              href="/admin"
+              onClick={onClose}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                pathname === '/admin'
+                  ? 'bg-yellow-500/15 text-yellow-400'
+                  : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'
+              }`}
+            >
+              <Crown className="w-4 h-4 shrink-0" />
+              Admin
+            </Link>
+          </>
+        )}
       </nav>
 
       <div className="px-3 py-4 border-t border-slate-700/60">
@@ -76,12 +96,19 @@ function NavContent({ onClose }: { onClose?: () => void }) {
 
 export default function Sidebar() {
   const [open, setOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data: { user } }) => {
+      if (user?.email === ADMIN_EMAIL) setIsAdmin(true)
+    })
+  }, [])
 
   return (
     <>
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex lg:flex-col lg:w-56 lg:fixed lg:inset-y-0 lg:z-30">
-        <NavContent />
+        <NavContent isAdmin={isAdmin} />
       </aside>
 
       {/* Mobile top bar */}
@@ -105,7 +132,7 @@ export default function Sidebar() {
             onClick={() => setOpen(false)}
           />
           <aside className="lg:hidden fixed inset-y-0 left-0 z-50 w-64 shadow-2xl">
-            <NavContent onClose={() => setOpen(false)} />
+            <NavContent onClose={() => setOpen(false)} isAdmin={isAdmin} />
           </aside>
         </>
       )}
