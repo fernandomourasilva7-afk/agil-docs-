@@ -27,9 +27,10 @@ export async function registrarContador(dados: {
     nome: dados.nome.trim(),
     telefone: dados.telefone.trim(),
     crc: dados.crc ? dados.crc.trim().toUpperCase() : null,
+    plano: 'free',
   })
 
   if (perfilError) {
-    throw new Error('Conta criada, mas erro ao salvar perfil. Entre em contato com o suporte.')
+    throw new Error(`Erro ao salvar perfil: ${perfilError.message}`)
   }
 }
