@@ -2,28 +2,126 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import Link from "next/link";
 import { registrarContador } from "@/app/actions/registrar-contador";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { FolderOpen, Loader2, Eye, EyeOff } from "lucide-react";
+import {
+  FolderOpen, Loader2, Eye, EyeOff, Check, ArrowRight,
+  Upload, Link2, LayoutDashboard, FileCheck, QrCode, Download,
+  MessageCircle, ChevronRight, AlertTriangle, Clock, Search,
+} from "lucide-react";
 
-export default function LoginPage() {
+// TODO: substituir pelo seu WhatsApp (só dígitos com DDD e código do Brasil 55)
+const WHATSAPP = "5511999999999";
+
+const dores = [
+  {
+    icon: MessageCircle,
+    titulo: "Documentos espalhados em todo lugar",
+    descricao: "WhatsApp, e-mail, Drive, pendrive, papel. Cada cliente entrega de um jeito diferente e você perde horas juntando tudo.",
+  },
+  {
+    icon: Clock,
+    titulo: "Cobrando o mesmo cliente três vezes",
+    descricao: "Você manda mensagem, eles esquecem. Manda de novo, mandam errado. A declaração atrasa e a culpa sobra pra você.",
+  },
+  {
+    icon: Search,
+    titulo: "Na hora H, você não sabe o que chegou",
+    descricao: "Faltam 2 dias pra entrega. Você não tem visibilidade do que foi enviado, o que está faltando e quem ainda não mandou nada.",
+  },
+];
+
+const passos = [
+  {
+    numero: "01",
+    titulo: "Cadastre o cliente",
+    descricao: "Em segundos, o sistema cria as 8 pastas do IR automaticamente e gera um link único para o cliente.",
+  },
+  {
+    numero: "02",
+    titulo: "Cliente envia sem complicação",
+    descricao: "O cliente acessa o link, escolhe a categoria e faz o upload. Sem criar conta, sem baixar app, sem confusão.",
+  },
+  {
+    numero: "03",
+    titulo: "Você acompanha tudo em tempo real",
+    descricao: "Veja quem entregou, o que está faltando e mova os clientes pelo Kanban conforme o andamento da declaração.",
+  },
+];
+
+const funcionalidades = [
+  { icon: Upload,          titulo: "Portal sem login",          descricao: "O cliente envia documentos pelo link sem precisar criar nenhuma conta." },
+  { icon: FolderOpen,      titulo: "8 categorias do IR",        descricao: "Pessoais, médicos, educação, bancários, investimentos e mais — tudo organizado." },
+  { icon: LayoutDashboard, titulo: "Painel Kanban",             descricao: "Visualize o progresso de todos os clientes em um único painel de controle." },
+  { icon: Link2,           titulo: "Link único por cliente",    descricao: "Cada cliente tem seu próprio portal personalizado. Fácil de compartilhar pelo WhatsApp." },
+  { icon: QrCode,          titulo: "Cobrança via PIX",          descricao: "Gere a cobrança dos seus honorários com QR Code PIX direto pelo sistema." },
+  { icon: Download,        titulo: "Download dos documentos",   descricao: "Baixe tudo em um clique após a confirmação do pagamento." },
+];
+
+const planos = [
+  {
+    key: "free",
+    nome: "Free",
+    preco: "Grátis",
+    periodo: "",
+    limite: "10 clientes",
+    destaque: false,
+    features: ["Portal de upload sem login", "8 categorias do IR", "Link único por cliente", "Painel Kanban"],
+    cta: "Começar grátis",
+    tipo: "signup",
+  },
+  {
+    key: "starter",
+    nome: "Starter",
+    preco: "R$79",
+    periodo: "/mês",
+    limite: "50 clientes",
+    destaque: false,
+    features: ["Tudo do Free", "Cobrança via PIX", "Download de documentos", "Suporte por e-mail"],
+    cta: "Contratar via WhatsApp",
+    tipo: "whatsapp",
+  },
+  {
+    key: "profissional",
+    nome: "Profissional",
+    preco: "R$199",
+    periodo: "/mês",
+    limite: "200 clientes",
+    destaque: true,
+    features: ["Tudo do Starter", "Múltiplas temporadas", "Relatórios de progresso", "Suporte prioritário"],
+    cta: "Contratar via WhatsApp",
+    tipo: "whatsapp",
+  },
+  {
+    key: "escritorio",
+    nome: "Escritório",
+    preco: "R$399",
+    periodo: "/mês",
+    limite: "Ilimitado",
+    destaque: false,
+    features: ["Tudo do Profissional", "Clientes ilimitados", "Configuração assistida", "Suporte dedicado"],
+    cta: "Contratar via WhatsApp",
+    tipo: "whatsapp",
+  },
+];
+
+export default function LandingPage() {
+  const [modalAberto, setModalAberto] = useState(false);
   const [modo, setModo] = useState<"entrar" | "cadastrar">("entrar");
   const [carregando, setCarregando] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const router = useRouter();
 
-  // Login
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-
-  // Cadastro
   const [nome, setNome] = useState("");
   const [emailCad, setEmailCad] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -31,11 +129,27 @@ export default function LoginPage() {
   const [senhaCad, setSenhaCad] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
 
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data: { user } }) => {
+      if (user) router.push("/dashboard");
+    });
+  }, [router]);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 32);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  function abrirModal(m: "entrar" | "cadastrar") {
+    setModo(m);
+    setModalAberto(true);
+  }
+
   async function handleEntrar(e: React.FormEvent) {
     e.preventDefault();
     setCarregando(true);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+    const { error } = await createClient().auth.signInWithPassword({ email, password: senha });
     if (error) {
       toast.error("E-mail ou senha incorretos.");
     } else {
@@ -47,29 +161,12 @@ export default function LoginPage() {
 
   async function handleCadastrar(e: React.FormEvent) {
     e.preventDefault();
-
-    if (senhaCad !== confirmarSenha) {
-      toast.error("As senhas não coincidem.");
-      return;
-    }
-    if (senhaCad.length < 6) {
-      toast.error("A senha deve ter ao menos 6 caracteres.");
-      return;
-    }
-    if (crc.trim().length < 3) {
-      toast.error("Informe um CRC válido.");
-      return;
-    }
-
+    if (senhaCad !== confirmarSenha) { toast.error("As senhas não coincidem."); return; }
+    if (senhaCad.length < 6) { toast.error("A senha deve ter ao menos 6 caracteres."); return; }
+    if (crc.trim().length < 3) { toast.error("Informe um CRC válido."); return; }
     setCarregando(true);
     try {
-      await registrarContador({
-        nome,
-        email: emailCad,
-        telefone,
-        crc,
-        senha: senhaCad,
-      });
+      await registrarContador({ nome, email: emailCad, telefone, crc, senha: senhaCad });
       toast.success("Conta criada! Verifique seu e-mail para confirmar o cadastro.");
       setModo("entrar");
       setEmail(emailCad);
@@ -80,57 +177,394 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-teal-900 p-4">
-      <div className="w-full max-w-sm">
-        <div className="flex flex-col items-center mb-8">
-          <div className="bg-teal-500 text-white rounded-2xl p-3 mb-4 shadow-lg shadow-teal-500/25">
-            <FolderOpen className="w-8 h-8" />
+    <div className="min-h-screen bg-slate-950 text-white antialiased">
+
+      {/* ── NAVBAR ── */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-6 lg:px-10 transition-all duration-300 ${scrolled ? "bg-slate-950/95 backdrop-blur-md border-b border-slate-800/60 shadow-lg" : "bg-transparent"}`}>
+        <div className="flex items-center gap-2.5">
+          <div className="bg-teal-500 text-white rounded-lg p-1.5">
+            <FolderOpen className="w-4 h-4" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Ágil Docs</h1>
-          <p className="text-slate-400 text-sm mt-1">Repositório para Contadores</p>
+          <span className="font-bold text-white text-base tracking-tight">Ágil Docs</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => abrirModal("entrar")}
+            className="text-slate-400 hover:text-white text-sm font-medium transition-colors hidden sm:block"
+          >
+            Entrar
+          </button>
+          <button
+            onClick={() => abrirModal("cadastrar")}
+            className="bg-teal-600 hover:bg-teal-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+          >
+            Começar grátis
+          </button>
+        </div>
+      </nav>
+
+      {/* ── HERO ── */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 pt-16 pb-20">
+        {/* Background blobs */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-teal-600/10 blur-[120px]" />
+          <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-teal-500/5 blur-[80px]" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-slate-700/20 blur-[80px]" />
         </div>
 
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+        <div className="relative z-10 max-w-4xl mx-auto text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/30 text-teal-400 text-xs font-semibold px-4 py-1.5 rounded-full mb-8 tracking-wide uppercase">
+            <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
+            O sistema dos contadores de alto desempenho
+          </div>
+
+          {/* Headline */}
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-[1.05] mb-6">
+            Contadores de Alto{" "}
+            <span className="bg-gradient-to-r from-teal-400 to-cyan-300 bg-clip-text text-transparent">
+              Desempenho
+            </span>{" "}
+            Têm Sistema.{" "}
+            <br className="hidden sm:block" />
+            Você Também Pode.
+          </h1>
+
+          {/* Subheadline */}
+          <p className="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
+            Pare de depender de WhatsApp e sorte para receber documentos do IR.
+            Com Ágil Docs, você centraliza tudo, acompanha em tempo real e entrega
+            declarações <span className="text-white font-medium">sem estresse e sem atraso</span>.
+          </p>
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+            <button
+              onClick={() => abrirModal("cadastrar")}
+              className="group flex items-center gap-2 bg-teal-600 hover:bg-teal-500 text-white font-semibold text-base px-8 py-3.5 rounded-xl transition-all shadow-lg shadow-teal-600/25 hover:shadow-teal-500/40"
+            >
+              Começar grátis agora
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+            <button
+              onClick={() => abrirModal("entrar")}
+              className="flex items-center gap-2 border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white font-medium text-base px-8 py-3.5 rounded-xl transition-all"
+            >
+              Já tenho conta
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Stats */}
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-500">
+            {[
+              "Portal sem login para o cliente",
+              "8 categorias do IR",
+              "Grátis para começar",
+            ].map((s) => (
+              <div key={s} className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-teal-500 shrink-0" />
+                {s}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-40">
+          <div className="w-px h-8 bg-gradient-to-b from-transparent to-slate-500" />
+          <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+        </div>
+      </section>
+
+      {/* ── DOR ── */}
+      <section className="py-24 px-4 bg-white text-gray-900">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-xs font-semibold px-4 py-1.5 rounded-full mb-5 uppercase tracking-wide">
+              <AlertTriangle className="w-3.5 h-3.5" />
+              Você ainda opera assim?
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900 mb-4">
+              A desordem tem um custo que{" "}
+              <span className="text-red-500">você ainda não calculou</span>
+            </h2>
+            <p className="text-gray-500 text-lg max-w-xl mx-auto">
+              Cada documento perdido, cada cliente cobrado três vezes, cada declaração atrasada — tudo isso tem uma única causa.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {dores.map(({ icon: Icon, titulo, descricao }) => (
+              <div key={titulo} className="bg-red-50 border border-red-100 rounded-2xl p-6">
+                <div className="bg-red-100 text-red-500 rounded-xl p-2.5 w-fit mb-4">
+                  <Icon className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-gray-900 mb-2 text-base">{titulo}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{descricao}</p>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-center mt-10 text-gray-400 text-base italic">
+            "Se você se identificou com pelo menos uma dessas situações, o problema não é você — é a falta de sistema."
+          </p>
+        </div>
+      </section>
+
+      {/* ── COMO FUNCIONA ── */}
+      <section className="py-24 px-4 bg-slate-50 text-gray-900">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900 mb-4">
+              3 passos para{" "}
+              <span className="text-teal-600">transformar seu escritório</span>
+            </h2>
+            <p className="text-gray-500 text-lg">Simples o suficiente para começar hoje. Poderoso o suficiente para escalar.</p>
+          </div>
+
+          <div className="space-y-6">
+            {passos.map(({ numero, titulo, descricao }, i) => (
+              <div key={numero} className="flex gap-6 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div className="text-4xl font-black text-teal-100 select-none w-14 shrink-0 text-right leading-none pt-1">
+                  {numero}
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-lg mb-1">{titulo}</h3>
+                  <p className="text-gray-500 leading-relaxed">{descricao}</p>
+                </div>
+                {i < passos.length - 1 && (
+                  <div className="hidden" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FUNCIONALIDADES ── */}
+      <section className="py-24 px-4 bg-white text-gray-900">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900 mb-4">
+              Tudo que você precisa.{" "}
+              <span className="text-teal-600">Nada que você não usa.</span>
+            </h2>
+            <p className="text-gray-500 text-lg">Feito especificamente para a realidade dos escritórios de contabilidade brasileiros.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {funcionalidades.map(({ icon: Icon, titulo, descricao }) => (
+              <div key={titulo} className="border border-gray-100 rounded-2xl p-6 hover:border-teal-200 hover:shadow-md transition-all group">
+                <div className="bg-teal-50 group-hover:bg-teal-100 text-teal-600 rounded-xl p-2.5 w-fit mb-4 transition-colors">
+                  <Icon className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-gray-900 mb-2">{titulo}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{descricao}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CITAÇÃO / COACHING ── */}
+      <section className="py-24 px-4 relative overflow-hidden bg-slate-950">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full bg-teal-600/10 blur-[100px]" />
+        </div>
+        <div className="relative z-10 max-w-3xl mx-auto text-center">
+          <div className="text-teal-500 text-5xl font-black leading-none mb-6 select-none">"</div>
+          <blockquote className="text-xl sm:text-2xl font-medium text-white leading-relaxed mb-8">
+            O problema não é a falta de clientes. É a falta de processo para atendê-los com excelência.{" "}
+            <span className="text-teal-400">
+              Organize seus processos e seus resultados se organizarão.
+            </span>{" "}
+            Pessoas de alta performance não têm sorte — elas têm sistema.
+          </blockquote>
+          <p className="text-slate-500 text-sm mb-10">
+            Inspirado na metodologia do Coaching Integral Sistêmico · Paulo Vieira
+          </p>
+          <button
+            onClick={() => abrirModal("cadastrar")}
+            className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-500 text-white font-semibold px-8 py-3.5 rounded-xl transition-all shadow-lg shadow-teal-600/25"
+          >
+            Quero transformar meu escritório
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </section>
+
+      {/* ── PLANOS ── */}
+      <section className="py-24 px-4 bg-slate-50 text-gray-900" id="planos">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900 mb-4">
+              Escolha o plano do seu escritório
+            </h2>
+            <p className="text-gray-500 text-lg">Comece grátis. Faça upgrade quando o crescimento exigir.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+            {planos.map((plano) => (
+              <div
+                key={plano.key}
+                className={`relative bg-white rounded-2xl p-6 flex flex-col shadow-sm ${
+                  plano.destaque
+                    ? "ring-2 ring-teal-500 shadow-teal-100 shadow-xl"
+                    : "border border-gray-200"
+                }`}
+              >
+                {plano.destaque && (
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                    <span className="bg-teal-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                      Mais popular
+                    </span>
+                  </div>
+                )}
+                <div className="mb-5">
+                  <h3 className="font-bold text-gray-900 text-lg">{plano.nome}</h3>
+                  <div className="mt-2 flex items-baseline gap-1">
+                    <span className={`text-3xl font-black ${plano.destaque ? "text-teal-600" : "text-gray-900"}`}>
+                      {plano.preco}
+                    </span>
+                    {plano.periodo && <span className="text-gray-400 text-sm">{plano.periodo}</span>}
+                  </div>
+                  <p className="text-teal-600 text-sm font-semibold mt-1">{plano.limite}</p>
+                </div>
+                <ul className="space-y-2.5 flex-1 mb-6">
+                  {plano.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-sm text-gray-600">
+                      <Check className="w-4 h-4 text-teal-500 shrink-0 mt-0.5" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                {plano.tipo === "signup" ? (
+                  <button
+                    onClick={() => abrirModal("cadastrar")}
+                    className="flex items-center justify-center gap-2 w-full bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold h-10 rounded-xl transition-colors"
+                  >
+                    {plano.cta}
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <a
+                    href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Olá! Quero contratar o plano ${plano.nome} do Ágil Docs por ${plano.preco}${plano.periodo}. Meu e-mail é: `)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex items-center justify-center gap-2 w-full text-white text-sm font-semibold h-10 rounded-xl transition-colors ${
+                      plano.destaque
+                        ? "bg-teal-600 hover:bg-teal-500"
+                        : "bg-slate-900 hover:bg-slate-800"
+                    }`}
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    {plano.cta}
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-gray-400 text-sm mt-8">
+            Pagamento via PIX. Acesso liberado em minutos após confirmação.
+          </p>
+        </div>
+      </section>
+
+      {/* ── CTA FINAL ── */}
+      <section className="py-24 px-4 relative overflow-hidden bg-slate-950">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-teal-600/8 blur-[100px]" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-teal-800/10 blur-[80px]" />
+        </div>
+        <div className="relative z-10 max-w-2xl mx-auto text-center">
+          <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight mb-4">
+            A decisão que você toma{" "}
+            <span className="text-teal-400">hoje</span>{" "}
+            define o resultado de amanhã.
+          </h2>
+          <p className="text-slate-400 text-lg mb-10">
+            Cada dia sem sistema é mais um dia no caos. Comece agora — é gratuito.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button
+              onClick={() => abrirModal("cadastrar")}
+              className="group flex items-center gap-2 bg-teal-600 hover:bg-teal-500 text-white font-semibold text-base px-8 py-4 rounded-xl transition-all shadow-xl shadow-teal-600/25 hover:shadow-teal-500/40"
+            >
+              Criar minha conta grátis agora
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+            <button
+              onClick={() => abrirModal("entrar")}
+              className="text-slate-400 hover:text-white text-sm font-medium transition-colors"
+            >
+              Já tenho conta → Entrar
+            </button>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-sm text-slate-600">
+            <div className="flex items-center gap-1.5"><Check className="w-4 h-4 text-teal-600" /> Sem cartão de crédito</div>
+            <div className="flex items-center gap-1.5"><Check className="w-4 h-4 text-teal-600" /> Configuração em 2 minutos</div>
+            <div className="flex items-center gap-1.5"><Check className="w-4 h-4 text-teal-600" /> Cancele quando quiser</div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="py-10 px-6 border-t border-slate-800/60 bg-slate-950">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="bg-teal-500 text-white rounded-lg p-1.5">
+              <FolderOpen className="w-4 h-4" />
+            </div>
+            <span className="font-bold text-white text-sm">Ágil Docs</span>
+          </div>
+          <p className="text-slate-600 text-xs">
+            © 2025 Ágil Docs · Repositório inteligente para contadores brasileiros
+          </p>
+          <button
+            onClick={() => abrirModal("entrar")}
+            className="text-slate-500 hover:text-teal-400 text-xs transition-colors"
+          >
+            Acessar o sistema →
+          </button>
+        </div>
+      </footer>
+
+      {/* ── MODAL DE LOGIN/CADASTRO ── */}
+      <Dialog open={modalAberto} onOpenChange={setModalAberto}>
+        <DialogContent className="sm:max-w-sm overflow-y-auto max-h-[92vh]">
+          <DialogTitle className="sr-only">
+            {modo === "entrar" ? "Entrar na conta" : "Criar conta"}
+          </DialogTitle>
+
+          <div className="flex items-center gap-2 mb-1">
+            <div className="bg-teal-500 text-white rounded-lg p-1.5">
+              <FolderOpen className="w-4 h-4" />
+            </div>
+            <span className="font-bold text-gray-900 text-sm">Ágil Docs</span>
+          </div>
+
           {modo === "entrar" ? (
             <>
-              <h2 className="text-lg font-bold text-gray-900 mb-1">Bem-vindo de volta</h2>
-              <p className="text-sm text-gray-500 mb-6">Entre para acessar seu painel</p>
-
+              <div className="mb-5">
+                <h2 className="text-xl font-black text-gray-900">Bem-vindo de volta</h2>
+                <p className="text-sm text-gray-400 mt-0.5">Entre para acessar seu painel</p>
+              </div>
               <form onSubmit={handleEntrar} className="space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="email">E-mail</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="contador@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                  <Input id="email" type="email" placeholder="contador@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="senha">Senha</Label>
                   <div className="relative">
-                    <Input
-                      id="senha"
-                      type={mostrarSenha ? "text" : "password"}
-                      placeholder="••••••••"
-                      value={senha}
-                      onChange={(e) => setSenha(e.target.value)}
-                      required
-                      minLength={6}
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setMostrarSenha(!mostrarSenha)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
+                    <Input id="senha" type={mostrarSenha ? "text" : "password"} placeholder="••••••••" value={senha} onChange={(e) => setSenha(e.target.value)} required minLength={6} className="pr-10" />
+                    <button type="button" onClick={() => setMostrarSenha(!mostrarSenha)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                       {mostrarSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
-                <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white h-10 mt-2" disabled={carregando}>
+                <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white h-10" disabled={carregando}>
                   {carregando && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Entrar
                 </Button>
@@ -138,129 +572,61 @@ export default function LoginPage() {
             </>
           ) : (
             <>
-              <h2 className="text-lg font-bold text-gray-900 mb-1">Criar conta</h2>
-              <p className="text-sm text-gray-500 mb-5">Preencha seus dados para se cadastrar</p>
-
+              <div className="mb-4">
+                <h2 className="text-xl font-black text-gray-900">Criar conta grátis</h2>
+                <p className="text-sm text-gray-400 mt-0.5">Leva menos de 2 minutos</p>
+              </div>
               <form onSubmit={handleCadastrar} className="space-y-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="nome">Nome completo *</Label>
-                  <Input
-                    id="nome"
-                    placeholder="João Silva"
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                    required
-                  />
+                  <Input id="nome" placeholder="João Silva" value={nome} onChange={(e) => setNome(e.target.value)} required />
                 </div>
-
                 <div className="space-y-1.5">
                   <Label htmlFor="emailCad">E-mail *</Label>
-                  <Input
-                    id="emailCad"
-                    type="email"
-                    placeholder="contador@email.com"
-                    value={emailCad}
-                    onChange={(e) => setEmailCad(e.target.value)}
-                    required
-                  />
+                  <Input id="emailCad" type="email" placeholder="contador@email.com" value={emailCad} onChange={(e) => setEmailCad(e.target.value)} required />
                 </div>
-
                 <div className="space-y-1.5">
                   <Label htmlFor="telefone">Telefone *</Label>
-                  <Input
-                    id="telefone"
-                    type="tel"
-                    placeholder="(11) 99999-9999"
-                    value={telefone}
-                    onChange={(e) => setTelefone(e.target.value)}
-                    required
-                  />
+                  <Input id="telefone" type="tel" placeholder="(11) 99999-9999" value={telefone} onChange={(e) => setTelefone(e.target.value)} required />
                 </div>
-
                 <div className="space-y-1.5">
                   <Label htmlFor="crc">CRC *</Label>
-                  <Input
-                    id="crc"
-                    placeholder="CRC/SP-123456"
-                    value={crc}
-                    onChange={(e) => setCrc(e.target.value)}
-                    required
-                  />
-                  <p className="text-xs text-gray-400">Número do seu registro no Conselho Regional de Contabilidade</p>
+                  <Input id="crc" placeholder="CRC/SP-123456" value={crc} onChange={(e) => setCrc(e.target.value)} required />
                 </div>
-
                 <div className="space-y-1.5">
                   <Label htmlFor="senhaCad">Senha *</Label>
                   <div className="relative">
-                    <Input
-                      id="senhaCad"
-                      type={mostrarSenha ? "text" : "password"}
-                      placeholder="Mínimo 6 caracteres"
-                      value={senhaCad}
-                      onChange={(e) => setSenhaCad(e.target.value)}
-                      required
-                      minLength={6}
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setMostrarSenha(!mostrarSenha)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
+                    <Input id="senhaCad" type={mostrarSenha ? "text" : "password"} placeholder="Mínimo 6 caracteres" value={senhaCad} onChange={(e) => setSenhaCad(e.target.value)} required minLength={6} className="pr-10" />
+                    <button type="button" onClick={() => setMostrarSenha(!mostrarSenha)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                       {mostrarSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
-
                 <div className="space-y-1.5">
                   <Label htmlFor="confirmarSenha">Confirmar senha *</Label>
-                  <Input
-                    id="confirmarSenha"
-                    type={mostrarSenha ? "text" : "password"}
-                    placeholder="Repita a senha"
-                    value={confirmarSenha}
-                    onChange={(e) => setConfirmarSenha(e.target.value)}
-                    required
-                    minLength={6}
-                  />
+                  <Input id="confirmarSenha" type={mostrarSenha ? "text" : "password"} placeholder="Repita a senha" value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} required minLength={6} />
                   {confirmarSenha && senhaCad !== confirmarSenha && (
                     <p className="text-xs text-red-500">As senhas não coincidem</p>
                   )}
                 </div>
-
-                <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white h-10 mt-1" disabled={carregando}>
+                <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white h-10" disabled={carregando}>
                   {carregando && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Criar conta
+                  Criar conta grátis
                 </Button>
               </form>
             </>
           )}
 
-          <p className="mt-5 text-center text-sm text-gray-500">
+          <p className="mt-4 text-center text-sm text-gray-400">
             {modo === "entrar" ? (
-              <>
-                Não tem conta?{" "}
-                <button onClick={() => setModo("cadastrar")} className="text-teal-600 hover:underline font-medium">
-                  Criar conta gratuita
-                </button>
-              </>
+              <>Não tem conta?{" "}<button onClick={() => setModo("cadastrar")} className="text-teal-600 hover:underline font-medium">Criar agora</button></>
             ) : (
-              <>
-                Já tem conta?{" "}
-                <button onClick={() => setModo("entrar")} className="text-teal-600 hover:underline font-medium">
-                  Entrar
-                </button>
-              </>
+              <>Já tem conta?{" "}<button onClick={() => setModo("entrar")} className="text-teal-600 hover:underline font-medium">Entrar</button></>
             )}
           </p>
-        </div>
+        </DialogContent>
+      </Dialog>
 
-        <p className="mt-4 text-center text-xs text-slate-500">
-          <Link href="/planos" className="hover:text-slate-300 transition-colors">
-            Ver planos e preços
-          </Link>
-        </p>
-      </div>
     </div>
   );
 }
