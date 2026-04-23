@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 import { registrarContador } from "@/app/actions/registrar-contador";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -253,6 +254,12 @@ export default function LoginPage() {
             )}
           </p>
         </div>
+
+        <p className="mt-4 text-center text-xs text-slate-500">
+          <Link href="/planos" className="hover:text-slate-300 transition-colors">
+            Ver planos e preços
+          </Link>
+        </p>
       </div>
     </div>
   );

@@ -3,7 +3,9 @@
 export const dynamic = "force-dynamic";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { PLANOS, PlanoKey } from "@/lib/planos";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,6 +60,7 @@ export default function NovoClientePage() {
   const [email, setEmail] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [clienteCriado, setClienteCriado] = useState<ClienteCriado | null>(null);
+  const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -70,6 +73,22 @@ export default function NovoClientePage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast.error("Sessão expirada. Faça login novamente.");
+      return;
+    }
+
+    // Verificar limite do plano
+    const [{ data: contadorData }, { count: totalClientes }] = await Promise.all([
+      supabase.from("contadores").select("plano").eq("id", user.id).single(),
+      supabase.from("clientes").select("*", { count: "exact", head: true }).eq("contador_id", user.id),
+    ]);
+    const plano = ((contadorData?.plano) ?? "free") as PlanoKey;
+    const limite = PLANOS[plano].limite;
+    if ((totalClientes ?? 0) >= limite) {
+      toast.error(
+        `Limite de ${limite} clientes do plano ${PLANOS[plano].label} atingido. Faça upgrade para continuar.`
+      );
+      setCarregando(false);
+      router.push("/plano");
       return;
     }
 

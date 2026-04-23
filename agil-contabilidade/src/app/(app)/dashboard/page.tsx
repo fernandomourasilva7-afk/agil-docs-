@@ -4,23 +4,34 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Plus, Users } from "lucide-react";
+import { Plus, Users, Sparkles } from "lucide-react";
 import { KanbanBoard } from "@/components/KanbanBoard";
+import { PLANOS, PlanoKey } from "@/lib/planos";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/");
 
-  const { data: clientes } = await supabase
-    .from("clientes")
-    .select(`id, nome, slug, status, categorias(id, documentos(id))`)
-    .order("created_at", { ascending: false });
+  const [{ data: clientes }, { data: contadorData }] = await Promise.all([
+    supabase
+      .from("clientes")
+      .select(`id, nome, slug, status, categorias(id, documentos(id))`)
+      .order("created_at", { ascending: false }),
+    supabase.from("contadores").select("plano").eq("id", user.id).single(),
+  ]);
 
   const clientesNormalizados = (clientes ?? []).map((c) => ({
     ...c,
     status: (c as { status?: string | null }).status ?? "link_enviado",
   }));
+
+  const planoAtual = ((contadorData?.plano) ?? "free") as PlanoKey;
+  const infoPlano = PLANOS[planoAtual];
+  const totalClientes = clientesNormalizados.length;
+  const limite = infoPlano.limite;
+  const ilimitado = limite >= 9999;
+  const percentual = ilimitado ? 0 : Math.min(100, Math.round((totalClientes / limite) * 100));
 
   return (
     <div className="px-4 py-6 lg:px-8">
@@ -39,6 +50,21 @@ export default async function DashboardPage() {
           </Button>
         </Link>
       </div>
+
+      {/* Indicador de uso do plano */}
+      <Link href="/plano" className="block mb-4">
+        <div className="bg-white rounded-xl border border-gray-200 px-4 py-2.5 shadow-sm flex items-center gap-2 text-sm hover:border-teal-300 transition-colors">
+          <Sparkles className="w-4 h-4 text-teal-500 shrink-0" />
+          <span className={`flex-1 ${percentual >= 100 ? "text-red-600 font-medium" : percentual >= 80 ? "text-yellow-600" : "text-gray-600"}`}>
+            {totalClientes}{!ilimitado ? `/${limite}` : ""} clientes
+            {" · Plano "}
+            <span className="font-medium text-gray-700">{infoPlano.label}</span>
+          </span>
+          <span className={`text-xs font-medium shrink-0 ${percentual >= 100 ? "text-red-600" : percentual >= 80 ? "text-yellow-600" : "text-teal-600"}`}>
+            {percentual >= 100 ? "Fazer upgrade →" : percentual >= 80 ? "Próximo do limite →" : "Ver plano →"}
+          </span>
+        </div>
+      </Link>
 
       {clientesNormalizados.length === 0 ? (
         <div className="text-center py-20 bg-white rounded-2xl border border-gray-200">
