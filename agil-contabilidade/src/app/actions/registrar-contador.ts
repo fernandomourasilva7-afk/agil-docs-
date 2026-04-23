@@ -8,7 +8,7 @@ export async function registrarContador(dados: {
   senha: string
   nome: string
   telefone: string
-  crc: string
+  crc?: string
 }) {
   const supabase = await createClient()
 
@@ -26,7 +26,7 @@ export async function registrarContador(dados: {
     id: data.user.id,
     nome: dados.nome.trim(),
     telefone: dados.telefone.trim(),
-    crc: dados.crc.trim().toUpperCase(),
+    crc: dados.crc ? dados.crc.trim().toUpperCase() : null,
   })
 
   if (perfilError) {

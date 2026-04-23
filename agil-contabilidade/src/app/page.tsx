@@ -165,7 +165,6 @@ export default function LandingPage() {
     e.preventDefault();
     if (senhaCad !== confirmarSenha) { toast.error("As senhas não coincidem."); return; }
     if (senhaCad.length < 6) { toast.error("A senha deve ter ao menos 6 caracteres."); return; }
-    if (crc.trim().length < 3) { toast.error("Informe um CRC válido."); return; }
     setCarregando(true);
     try {
       await registrarContador({ nome, email: emailCad, telefone, crc, senha: senhaCad });
@@ -683,8 +682,8 @@ export default function LandingPage() {
                     <Input id="telefone" type="tel" placeholder="(11) 99999-9999" value={telefone} onChange={(e) => setTelefone(e.target.value)} required />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="crc">CRC *</Label>
-                    <Input id="crc" placeholder="CRC/SP-123456" value={crc} onChange={(e) => setCrc(e.target.value)} required />
+                    <Label htmlFor="crc">CRC <span className="text-gray-400 font-normal">(opcional)</span></Label>
+                    <Input id="crc" placeholder="CRC/SP-123456" value={crc} onChange={(e) => setCrc(e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="senhaCad">Senha *</Label>
