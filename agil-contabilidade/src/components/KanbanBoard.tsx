@@ -97,7 +97,7 @@ function CardConteudo({ cliente }: { cliente: ClienteKanban }) {
         <div className="w-full bg-gray-100 rounded-full h-1">
           <div
             className="h-1 rounded-full transition-all"
-            style={{ width: `${pct}%`, backgroundColor: pct === 100 ? '#22c55e' : '#3b82f6' }}
+            style={{ width: `${pct}%`, backgroundColor: pct === 100 ? '#22c55e' : '#0d9488' }}
           />
         </div>
       </div>

@@ -33,8 +33,8 @@ export default async function PagamentoPage({ params }: Props) {
 
   if (!cliente.pix_chave || !cliente.pix_valor) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl border border-gray-200 p-8 max-w-sm w-full text-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl border border-gray-200 p-8 max-w-sm w-full text-center shadow-sm">
           <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
             <Clock className="w-8 h-8 text-gray-400" />
           </div>
@@ -62,7 +62,6 @@ export default async function PagamentoPage({ params }: Props) {
       .slice(0, 15);
 
     const nomeLimpo = (cliente.pix_nome ?? "Contador").slice(0, 25);
-
     const txId = `AGIL${slug}`.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 25);
 
     const qr = QrCodePix({
@@ -96,13 +95,13 @@ export default async function PagamentoPage({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      <header className="bg-white border-b border-gray-200">
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-slate-900 border-b border-slate-700/60">
         <div className="max-w-lg mx-auto px-4 py-4 flex items-center gap-3">
-          <div className="bg-blue-600 text-white rounded-xl p-1.5">
+          <div className="bg-teal-500 text-white rounded-lg p-1.5">
             <FolderOpen className="w-5 h-5" />
           </div>
-          <span className="font-bold text-gray-900">Ágil Docs</span>
+          <span className="font-bold text-white">Ágil Docs</span>
         </div>
       </header>
 
@@ -136,11 +135,11 @@ export default async function PagamentoPage({ params }: Props) {
                     href={doc.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-300 hover:bg-blue-50 transition-all"
+                    className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3.5 hover:border-teal-300 hover:bg-teal-50 transition-all"
                   >
-                    <Download className="w-5 h-5 text-blue-600 shrink-0" />
+                    <Download className="w-5 h-5 text-teal-600 shrink-0" />
                     <span className="text-sm font-medium text-gray-800 truncate flex-1">{doc.nome}</span>
-                    <span className="text-xs text-blue-600 shrink-0 font-medium">Baixar</span>
+                    <span className="text-xs text-teal-600 shrink-0 font-medium">Baixar</span>
                   </a>
                 ))}
               </div>
@@ -154,35 +153,35 @@ export default async function PagamentoPage({ params }: Props) {
           <div className="space-y-4">
             <div className="bg-white rounded-2xl border border-gray-200 p-6 text-center shadow-sm">
               <p className="text-sm text-gray-500 mb-1">Valor do serviço</p>
-              <p className="text-4xl font-bold text-gray-900 mb-5">
+              <p className="text-4xl font-bold text-gray-900 mb-6">
                 R${" "}
                 {valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </p>
 
               {qrBase64 && (
-                <div className="flex justify-center mb-4">
+                <div className="flex justify-center mb-5">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={qrBase64}
                     alt="QR Code PIX"
-                    width={200}
-                    height={200}
+                    width={220}
+                    height={220}
                     className="rounded-xl border border-gray-100"
                   />
                 </div>
               )}
 
               <p className="text-sm text-gray-500 mb-2">ou use o código Pix Copia e Cola:</p>
-              <div className="bg-gray-50 rounded-lg p-3 text-xs font-mono text-gray-600 break-all mb-3 text-left border border-gray-100">
+              <div className="bg-gray-50 rounded-lg p-3 text-xs font-mono text-gray-600 break-all mb-4 text-left border border-gray-100">
                 {pixPayload}
               </div>
 
               {pixPayload && <BotaoCopiar texto={pixPayload} />}
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <p className="text-sm font-semibold text-blue-800 mb-2">Como pagar:</p>
-              <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+            <div className="bg-teal-50 border border-teal-200 rounded-xl p-4">
+              <p className="text-sm font-semibold text-teal-800 mb-2">Como pagar:</p>
+              <ol className="text-sm text-teal-700 space-y-1 list-decimal list-inside">
                 <li>Abra o app do seu banco</li>
                 <li>Acesse a área PIX</li>
                 <li>Escaneie o QR code ou cole o código acima</li>

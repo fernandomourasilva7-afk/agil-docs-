@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, UserPlus, CheckCircle2, MessageCircle, ExternalLink, UserPlus2 } from "lucide-react";
+import { Loader2, UserPlus, CheckCircle2, MessageCircle, ExternalLink, UserPlus2 } from "lucide-react";
 import Link from "next/link";
 
 const CATEGORIAS_PADRAO = [
@@ -114,12 +114,12 @@ export default function NovoClientePage() {
       : null;
 
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-lg mx-auto pt-8">
+      <div className="px-4 py-6 lg:px-8">
+        <div className="max-w-lg mx-auto">
           <Card className="shadow-sm">
             <CardContent className="pt-8 pb-8 px-6 text-center">
-              <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-8 h-8 text-green-600" />
+              <div className="bg-teal-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 className="w-8 h-8 text-teal-600" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-1">
                 Cliente criado com sucesso!
@@ -171,17 +171,12 @@ export default function NovoClientePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="px-4 py-6 lg:px-8">
       <div className="max-w-lg mx-auto">
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-6">
-          <ArrowLeft className="w-4 h-4" />
-          Voltar ao painel
-        </Link>
-
         <Card className="shadow-sm">
           <CardHeader>
             <div className="flex items-center gap-3 mb-1">
-              <div className="bg-blue-100 text-blue-600 rounded-lg p-2">
+              <div className="bg-teal-100 text-teal-600 rounded-lg p-2">
                 <UserPlus className="w-5 h-5" />
               </div>
               <CardTitle>Novo Cliente</CardTitle>
@@ -234,18 +229,22 @@ export default function NovoClientePage() {
                 />
               </div>
 
-              <div className="bg-blue-50 rounded-lg p-3 text-sm text-blue-700">
+              <div className="bg-teal-50 rounded-lg p-3 text-sm text-teal-700">
                 <p className="font-medium mb-1">Pastas criadas automaticamente:</p>
-                <ul className="space-y-0.5 text-blue-600">
+                <ul className="space-y-0.5 text-teal-600">
                   {CATEGORIAS_PADRAO.map((c) => (
                     <li key={c.nome} className="flex items-center gap-1.5">
-                      <span className="text-blue-400">•</span> {c.nome}
+                      <span className="text-teal-400">•</span> {c.nome}
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <Button type="submit" className="w-full" disabled={carregando || !nome.trim()}>
+              <Button
+                type="submit"
+                className="w-full bg-teal-600 hover:bg-teal-700 text-white"
+                disabled={carregando || !nome.trim()}
+              >
                 {carregando && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Criar Cliente e Gerar Link
               </Button>
