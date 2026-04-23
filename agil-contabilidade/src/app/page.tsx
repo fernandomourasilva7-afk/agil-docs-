@@ -166,21 +166,22 @@ export default function LandingPage() {
     if (senhaCad !== confirmarSenha) { toast.error("As senhas não coincidem."); return; }
     if (senhaCad.length < 6) { toast.error("A senha deve ter ao menos 6 caracteres."); return; }
     setCarregando(true);
-    try {
-      await registrarContador({ nome, email: emailCad, telefone, crc, senha: senhaCad });
-      if (planoSelecionado !== "free") {
-        const planoInfo = planos.find((p) => p.key === planoSelecionado);
-        const msg = `Olá! Acabei de criar minha conta no Ágil Docs e gostaria de ativar o plano ${planoInfo?.nome} (${planoInfo?.preco}${planoInfo?.periodo}). Meu e-mail é: ${emailCad}`;
-        window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, "_blank");
-        toast.success(`Conta criada! Você será redirecionado para o WhatsApp para ativar o plano ${planoInfo?.nome}.`);
-      } else {
-        toast.success("Conta criada! Verifique seu e-mail para confirmar o cadastro.");
-      }
-      setModo("entrar");
-      setEmail(emailCad);
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao criar conta.");
+    const resultado = await registrarContador({ nome, email: emailCad, telefone, crc, senha: senhaCad });
+    if (resultado?.error) {
+      toast.error(resultado.error);
+      setCarregando(false);
+      return;
     }
+    if (planoSelecionado !== "free") {
+      const planoInfo = planos.find((p) => p.key === planoSelecionado);
+      const msg = `Olá! Acabei de criar minha conta no Ágil Docs e gostaria de ativar o plano ${planoInfo?.nome} (${planoInfo?.preco}${planoInfo?.periodo}). Meu e-mail é: ${emailCad}`;
+      window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, "_blank");
+      toast.success(`Conta criada! Você será redirecionado para o WhatsApp para ativar o plano ${planoInfo?.nome}.`);
+    } else {
+      toast.success("Conta criada! Verifique seu e-mail para confirmar o cadastro.");
+    }
+    setModo("entrar");
+    setEmail(emailCad);
     setCarregando(false);
   }
 

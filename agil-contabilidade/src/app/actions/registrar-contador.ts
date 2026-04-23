@@ -9,7 +9,7 @@ export async function registrarContador(dados: {
   nome: string
   telefone: string
   crc?: string
-}) {
+}): Promise<{ error?: string }> {
   const supabase = await createClient()
 
   const { data, error } = await supabase.auth.signUp({
@@ -17,8 +17,12 @@ export async function registrarContador(dados: {
     password: dados.senha,
   })
 
-  if (error || !data.user) {
-    throw new Error(error?.message ?? 'Erro ao criar conta')
+  if (error) {
+    return { error: error.message }
+  }
+
+  if (!data.user) {
+    return { error: 'Não foi possível criar o usuário. Tente novamente.' }
   }
 
   const admin = createAdminClient()
@@ -31,6 +35,8 @@ export async function registrarContador(dados: {
   })
 
   if (perfilError) {
-    throw new Error(`Erro ao salvar perfil: ${perfilError.message}`)
+    return { error: `Erro ao salvar perfil: ${perfilError.message}` }
   }
+
+  return {}
 }
