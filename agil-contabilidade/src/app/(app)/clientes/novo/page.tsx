@@ -93,6 +93,34 @@ export default function NovoClientePage() {
       return;
     }
 
+    // Verificar telefone duplicado
+    if (telefone.trim()) {
+      const { data: dupTel } = await supabase
+        .from("clientes")
+        .select("id, nome")
+        .eq("contador_id", user.id)
+        .eq("telefone", telefone.trim())
+        .maybeSingle();
+      if (dupTel) {
+        toast.error(`Este número de WhatsApp já está cadastrado para ${dupTel.nome}.`);
+        setCarregando(false);
+        return;
+      }
+    }
+
+    // Verificar nome duplicado (sem distinção de maiúsculas/minúsculas)
+    const { data: dupNome } = await supabase
+      .from("clientes")
+      .select("id")
+      .eq("contador_id", user.id)
+      .ilike("nome", nome.trim())
+      .maybeSingle();
+    if (dupNome) {
+      toast.error("Já existe um cliente com esse nome completo.");
+      setCarregando(false);
+      return;
+    }
+
     const { data: cliente, error: erroCliente } = await supabase
       .from("clientes")
       .insert({
