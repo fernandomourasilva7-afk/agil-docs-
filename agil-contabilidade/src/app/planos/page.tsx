@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Check, FolderOpen, MessageCircle, ArrowRight } from 'lucide-react'
 
 // TODO: substituir pelo seu número de WhatsApp (só dígitos, com DDD e código do Brasil)
-const WHATSAPP = '5511999999999'
+const WHATSAPP = '5583987095584'
 
 const planos = [
   {

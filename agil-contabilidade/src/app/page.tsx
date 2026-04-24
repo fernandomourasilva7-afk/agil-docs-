@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 // TODO: substituir pelo seu WhatsApp (só dígitos com DDD e código do Brasil 55)
-const WHATSAPP = "5511999999999";
+const WHATSAPP = "5583987095584";
 
 const dores = [
   {
