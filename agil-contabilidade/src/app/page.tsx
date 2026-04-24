@@ -166,23 +166,27 @@ export default function LandingPage() {
     if (senhaCad !== confirmarSenha) { toast.error("As senhas não coincidem."); return; }
     if (senhaCad.length < 6) { toast.error("A senha deve ter ao menos 6 caracteres."); return; }
     setCarregando(true);
-    const resultado = await registrarContador({ nome, email: emailCad, telefone, crc, senha: senhaCad });
-    if (resultado?.error) {
-      toast.error(resultado.error);
+    try {
+      const resultado = await registrarContador({ nome, email: emailCad, telefone, crc, senha: senhaCad });
+      if (resultado?.error) {
+        toast.error(resultado.error);
+        return;
+      }
+      if (planoSelecionado !== "free") {
+        const planoInfo = planos.find((p) => p.key === planoSelecionado);
+        const msg = `Olá! Acabei de criar minha conta no Ágil Docs e gostaria de ativar o plano ${planoInfo?.nome} (${planoInfo?.preco}${planoInfo?.periodo}). Meu e-mail é: ${emailCad}`;
+        window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, "_blank");
+        toast.success(`Conta criada! Você será redirecionado para o WhatsApp para ativar o plano ${planoInfo?.nome}.`);
+      } else {
+        toast.success("Conta criada com sucesso! Faça login para acessar.");
+      }
+      setModo("entrar");
+      setEmail(emailCad);
+    } catch {
+      toast.error("Erro inesperado. Tente novamente.");
+    } finally {
       setCarregando(false);
-      return;
     }
-    if (planoSelecionado !== "free") {
-      const planoInfo = planos.find((p) => p.key === planoSelecionado);
-      const msg = `Olá! Acabei de criar minha conta no Ágil Docs e gostaria de ativar o plano ${planoInfo?.nome} (${planoInfo?.preco}${planoInfo?.periodo}). Meu e-mail é: ${emailCad}`;
-      window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, "_blank");
-      toast.success(`Conta criada! Você será redirecionado para o WhatsApp para ativar o plano ${planoInfo?.nome}.`);
-    } else {
-      toast.success("Conta criada! Verifique seu e-mail para confirmar o cadastro.");
-    }
-    setModo("entrar");
-    setEmail(emailCad);
-    setCarregando(false);
   }
 
   return (
