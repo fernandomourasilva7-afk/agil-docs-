@@ -25,6 +25,10 @@ export async function registrarContador(dados: {
     return { error: 'Não foi possível criar o usuário. Tente novamente.' }
   }
 
+  if (data.user.identities && data.user.identities.length === 0) {
+    return { error: 'Este e-mail já está cadastrado. Faça login ou use outro e-mail.' }
+  }
+
   const admin = createAdminClient()
   const { error: perfilError } = await admin.from('contadores').insert({
     id: data.user.id,
