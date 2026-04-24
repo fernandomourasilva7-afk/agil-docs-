@@ -2,12 +2,9 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { PLANOS, PlanoKey } from '@/lib/planos'
-import { MessageCircle, Sparkles } from 'lucide-react'
-
-// TODO: substituir pelo seu número de WhatsApp (só dígitos, com DDD e código do Brasil)
-const WHATSAPP = '5583987095584'
+import { Sparkles } from 'lucide-react'
+import UpgradePlano from './UpgradePlano'
 
 export default async function MeuPlanoPage() {
   const supabase = await createClient()
@@ -83,39 +80,7 @@ export default async function MeuPlanoPage() {
 
       {/* Opções de upgrade */}
       {planosSuperiores.length > 0 ? (
-        <div>
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            Fazer upgrade
-          </h2>
-          <div className="space-y-3">
-            {planosSuperiores.map((key) => {
-              const info = PLANOS[key]
-              const limiteTexto = info.limite >= 9999 ? 'Ilimitado' : `${info.limite} clientes`
-              return (
-                <div
-                  key={key}
-                  className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between gap-4 shadow-sm"
-                >
-                  <div>
-                    <div className="font-semibold text-gray-900">{info.label}</div>
-                    <div className="text-sm text-gray-500">
-                      {limiteTexto} · R${info.preco}/mês
-                    </div>
-                  </div>
-                  <a
-                    href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Olá! Quero contratar o plano ${info.label} do Ágil Docs por R$${info.preco}/mês. Meu e-mail é: `)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors shrink-0"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    Contratar
-                  </a>
-                </div>
-              )
-            })}
-          </div>
-        </div>
+        <UpgradePlano planosSuperiores={planosSuperiores} />
       ) : (
         <div className="bg-teal-50 rounded-xl border border-teal-200 p-4 text-center">
           <p className="text-teal-700 font-semibold">Você está no plano máximo!</p>
@@ -124,12 +89,6 @@ export default async function MeuPlanoPage() {
           </p>
         </div>
       )}
-
-      <div className="mt-6">
-        <Link href="/planos" className="text-sm text-teal-600 hover:underline">
-          Ver página completa de planos →
-        </Link>
-      </div>
     </div>
   )
 }
