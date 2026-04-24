@@ -556,55 +556,86 @@ export default function LandingPage() {
 
       {/* ── MODAL DE LOGIN/CADASTRO ── */}
       <Dialog open={modalAberto} onOpenChange={setModalAberto}>
-        <DialogContent
-          className={
-            modo === "cadastrar"
-              ? "sm:max-w-5xl p-0 gap-0 overflow-hidden max-h-[92vh]"
-              : "sm:max-w-sm overflow-y-auto max-h-[92vh]"
-          }
-        >
+        <DialogContent className="sm:max-w-5xl p-0 gap-0 overflow-hidden max-h-[92vh]">
           <DialogTitle className="sr-only">
             {modo === "entrar" ? "Entrar na conta" : "Criar conta"}
           </DialogTitle>
 
           {modo === "entrar" ? (
-            <>
-              <div className="flex items-center gap-2 mb-1">
-                <div className="bg-teal-500 text-white rounded-lg p-1.5">
-                  <FolderOpen className="w-4 h-4" />
-                </div>
-                <span className="font-bold text-gray-900 text-sm">Ágil Docs</span>
-              </div>
-              <div className="mb-5">
-                <h2 className="text-xl font-black text-gray-900">Bem-vindo de volta</h2>
-                <p className="text-sm text-gray-400 mt-0.5">Entre para acessar seu painel</p>
-              </div>
-              <form onSubmit={handleEntrar} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input id="email" type="email" placeholder="contador@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="senha">Senha</Label>
-                  <div className="relative">
-                    <Input id="senha" type={mostrarSenha ? "text" : "password"} placeholder="••••••••" value={senha} onChange={(e) => setSenha(e.target.value)} required minLength={6} className="pr-10" />
-                    <button type="button" onClick={() => setMostrarSenha(!mostrarSenha)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                      {mostrarSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
+            <div className="grid grid-cols-1 lg:grid-cols-[5fr_7fr] h-full">
+              {/* Painel esquerdo */}
+              <div className="hidden lg:flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-teal-950 p-8">
+                <div className="flex items-center gap-2 mb-7">
+                  <div className="bg-teal-500 text-white rounded-lg p-1.5">
+                    <FolderOpen className="w-4 h-4" />
                   </div>
+                  <span className="font-bold text-white text-sm">Ágil Docs</span>
                 </div>
-                <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white h-10" disabled={carregando}>
-                  {carregando && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Entrar
-                </Button>
-              </form>
-              <p className="mt-4 text-center text-sm text-gray-400">
-                Não tem conta?{" "}
-                <button onClick={() => setModo("cadastrar")} className="text-teal-600 hover:underline font-medium">
-                  Criar agora
-                </button>
-              </p>
-            </>
+                <h3 className="text-xl font-black text-white mb-1">O sistema dos contadores</h3>
+                <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+                  Centralize o recebimento de documentos do IR dos seus clientes em um só lugar.
+                </p>
+                <div className="space-y-2.5 flex-1">
+                  {[
+                    { nome: "Free", preco: "Grátis", limite: "10 clientes" },
+                    { nome: "Starter", preco: "R$79/mês", limite: "50 clientes" },
+                    { nome: "Profissional", preco: "R$199/mês", limite: "200 clientes" },
+                    { nome: "Escritório", preco: "R$399/mês", limite: "Ilimitado" },
+                  ].map((p) => (
+                    <div
+                      key={p.nome}
+                      className="flex items-center justify-between bg-slate-800/50 border border-slate-700/50 rounded-lg px-3.5 py-2.5"
+                    >
+                      <div>
+                        <span className="text-white text-sm font-semibold">{p.nome}</span>
+                        <span className="text-teal-500 text-xs ml-2">{p.limite}</span>
+                      </div>
+                      <span className="text-slate-300 text-sm font-medium">{p.preco}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-slate-600 text-xs mt-6">Sem cartão de crédito · Pagamento via PIX</p>
+              </div>
+
+              {/* Painel direito — formulário de login */}
+              <div className="p-6 sm:p-8 flex flex-col justify-center overflow-y-auto">
+                <div className="flex items-center gap-2 mb-4 lg:hidden">
+                  <div className="bg-teal-500 text-white rounded-lg p-1.5">
+                    <FolderOpen className="w-4 h-4" />
+                  </div>
+                  <span className="font-bold text-gray-900 text-sm">Ágil Docs</span>
+                </div>
+                <div className="mb-5">
+                  <h2 className="text-xl font-black text-gray-900">Bem-vindo de volta</h2>
+                  <p className="text-sm text-gray-400 mt-0.5">Entre para acessar seu painel</p>
+                </div>
+                <form onSubmit={handleEntrar} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="email">E-mail</Label>
+                    <Input id="email" type="email" placeholder="contador@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="senha">Senha</Label>
+                    <div className="relative">
+                      <Input id="senha" type={mostrarSenha ? "text" : "password"} placeholder="••••••••" value={senha} onChange={(e) => setSenha(e.target.value)} required minLength={6} className="pr-10" />
+                      <button type="button" onClick={() => setMostrarSenha(!mostrarSenha)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        {mostrarSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white h-10" disabled={carregando}>
+                    {carregando && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    Entrar
+                  </Button>
+                </form>
+                <p className="mt-4 text-center text-sm text-gray-400">
+                  Não tem conta?{" "}
+                  <button onClick={() => setModo("cadastrar")} className="text-teal-600 hover:underline font-medium">
+                    Criar agora
+                  </button>
+                </p>
+              </div>
+            </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-[5fr_7fr] h-full">
               {/* Painel esquerdo — planos (só desktop) */}
