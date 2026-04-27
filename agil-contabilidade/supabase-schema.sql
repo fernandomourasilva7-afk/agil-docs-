@@ -89,3 +89,9 @@ create policy "contador_le_documentos" on documentos
 
 -- Policy de leitura para o contador:
 -- SELECT: auth.uid() is not null
+
+-- ============================================
+-- MIGRAÇÃO: Mercado Pago (substitui Asaas)
+-- Execute no Supabase SQL Editor
+-- ============================================
+-- ALTER TABLE contadores ADD COLUMN IF NOT EXISTS mp_subscription_id text;
