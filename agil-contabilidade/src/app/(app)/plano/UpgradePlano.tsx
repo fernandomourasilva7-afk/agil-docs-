@@ -105,7 +105,7 @@ export default function UpgradePlano({ planosSuperiores }: { planosSuperiores: P
                         ? <Loader2 className="w-4 h-4 animate-spin" />
                         : <ExternalLink className="w-4 h-4" />
                       }
-                      {carregando ? 'Gerando cobrança...' : 'Gerar cobrança'}
+                      {carregando ? 'Gerando...' : 'Ir para pagamento'}
                     </button>
                     <button
                       type="button"

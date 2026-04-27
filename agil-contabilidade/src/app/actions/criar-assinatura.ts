@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { criarCliente, criarAssinatura } from '@/lib/asaas'
+import { criarCliente, criarAssinatura, buscarPagamentosAssinatura } from '@/lib/asaas'
 import { PLANOS, PlanoKey } from '@/lib/planos'
 
 function proximaData() {
@@ -76,8 +76,14 @@ export async function contratarPlano(dados: {
       return { error: msg }
     }
 
-    // Retorna o link de pagamento da primeira cobrança
-    const linkPagamento = assinatura.paymentLink ?? assinatura.bankSlipUrl ?? null
+    // Busca o link de pagamento da primeira cobrança
+    let linkPagamento = assinatura.paymentLink ?? assinatura.bankSlipUrl ?? null
+
+    if (!linkPagamento && assinatura.id) {
+      const pagamentos = await buscarPagamentosAssinatura(assinatura.id)
+      const primeiro = pagamentos?.data?.[0]
+      linkPagamento = primeiro?.invoiceUrl ?? primeiro?.bankSlipUrl ?? null
+    }
 
     return { url: linkPagamento ?? undefined }
   } catch (err) {
