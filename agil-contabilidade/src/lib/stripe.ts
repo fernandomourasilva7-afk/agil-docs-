@@ -36,7 +36,7 @@ export async function criarCheckout(dados: {
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     mode: 'subscription',
-    payment_method_types: ['card'],
+    payment_method_types: ['card', 'pix'],
     line_items: [
       {
         price_data: {
