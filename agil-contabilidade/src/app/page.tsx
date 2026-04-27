@@ -255,6 +255,11 @@ export default function LandingPage() {
         {/* Conteúdo — alinhado à esquerda */}
         <div className="relative z-10 w-full max-w-6xl mx-auto px-6 lg:px-10 py-24">
           <div className="max-w-2xl">
+            {/* Logo */}
+            <div className="flex items-center gap-3 mb-8">
+              <Image src="/logo.png" alt="Ágil Docs" width={56} height={56} className="w-14 h-14" />
+              <span className="text-2xl font-black text-white tracking-tight">Ágil Docs</span>
+            </div>
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/30 text-teal-400 text-xs font-semibold px-4 py-1.5 rounded-full mb-8 tracking-wide uppercase">
               <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
