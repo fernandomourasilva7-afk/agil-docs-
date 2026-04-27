@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { criarAssinatura } from '@/lib/mercadopago'
+import { criarCheckout } from '@/lib/stripe'
 import { PLANOS, PlanoKey } from '@/lib/planos'
 
 export async function contratarPlano(dados: {
@@ -24,8 +24,10 @@ export async function contratarPlano(dados: {
     const info = PLANOS[dados.plano]
     if (!info || info.preco === 0) return { error: 'Plano inválido.' }
 
-    const result = await criarAssinatura({
+    const result = await criarCheckout({
+      userId: user.id,
       email: user.email!,
+      nome: contador.nome,
       plano: info.label,
       valor: info.preco,
     })
@@ -33,11 +35,13 @@ export async function contratarPlano(dados: {
     const admin = createAdminClient()
     await admin
       .from('contadores')
-      .update({ mp_subscription_id: result.id })
+      .update({ stripe_customer_id: result.customerId })
       .eq('id', user.id)
 
     return { url: result.checkoutUrl ?? undefined }
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Erro inesperado.' }
+  } catch (err: unknown) {
+    console.error('Erro contratarPlano:', err)
+    if (err instanceof Error) return { error: err.message }
+    return { error: 'Erro inesperado.' }
   }
 }

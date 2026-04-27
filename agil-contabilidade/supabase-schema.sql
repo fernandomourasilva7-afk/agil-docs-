@@ -91,7 +91,8 @@ create policy "contador_le_documentos" on documentos
 -- SELECT: auth.uid() is not null
 
 -- ============================================
--- MIGRAÇÃO: Mercado Pago (substitui Asaas)
+-- MIGRAÇÃO: Stripe (substitui Asaas e Mercado Pago)
 -- Execute no Supabase SQL Editor
 -- ============================================
--- ALTER TABLE contadores ADD COLUMN IF NOT EXISTS mp_subscription_id text;
+-- ALTER TABLE contadores ADD COLUMN IF NOT EXISTS stripe_customer_id text;
+-- ALTER TABLE contadores ADD COLUMN IF NOT EXISTS stripe_subscription_id text;
