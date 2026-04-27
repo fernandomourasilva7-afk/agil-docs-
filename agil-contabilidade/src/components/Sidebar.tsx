@@ -99,9 +99,13 @@ export default function Sidebar() {
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    createClient().auth.getUser().then(({ data: { user } }) => {
-      if (user?.email === ADMIN_EMAIL) setIsAdmin(true)
-    })
+    try {
+      createClient().auth.getUser()
+        .then(({ data: { user } }) => {
+          if (user?.email === ADMIN_EMAIL) setIsAdmin(true)
+        })
+        .catch(() => {})
+    } catch {}
   }, [])
 
   return (
