@@ -4,7 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import { QrCodePix } from "qrcode-pix";
-import { FolderOpen, CheckCircle2, Download, Clock } from "lucide-react";
+import { CheckCircle2, Download, Clock } from "lucide-react";
+import Image from "next/image";
 import BotaoCopiar from "@/components/BotaoCopiar";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -98,9 +99,7 @@ export default async function PagamentoPage({ params }: Props) {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-slate-900 border-b border-slate-700/60">
         <div className="max-w-lg mx-auto px-4 py-4 flex items-center gap-3">
-          <div className="bg-teal-500 text-white rounded-lg p-1.5">
-            <FolderOpen className="w-5 h-5" />
-          </div>
+          <Image src="/logo.png" alt="Ágil Docs" width={32} height={32} className="w-8 h-8" />
           <span className="font-bold text-white">Ágil Docs</span>
         </div>
       </header>

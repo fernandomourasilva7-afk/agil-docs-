@@ -214,9 +214,7 @@ export default function LandingPage() {
       {/* ── NAVBAR ── */}
       <nav className={`fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-6 lg:px-10 transition-all duration-300 ${scrolled ? "bg-slate-950/95 backdrop-blur-md border-b border-slate-800/60 shadow-lg" : "bg-transparent"}`}>
         <div className="flex items-center gap-2.5">
-          <div className="bg-teal-500 text-white rounded-lg p-1.5">
-            <FolderOpen className="w-4 h-4" />
-          </div>
+          <Image src="/logo.png" alt="Ágil Docs" width={28} height={28} className="w-7 h-7" />
           <span className="font-bold text-white text-base tracking-tight">Ágil Docs</span>
         </div>
         <div className="flex items-center gap-3">
@@ -255,11 +253,6 @@ export default function LandingPage() {
         {/* Conteúdo — alinhado à esquerda */}
         <div className="relative z-10 w-full max-w-6xl mx-auto px-6 lg:px-10 py-24">
           <div className="max-w-2xl">
-            {/* Logo */}
-            <div className="flex items-center gap-3 mb-8">
-              <Image src="/logo.png" alt="Ágil Docs" width={56} height={56} className="w-14 h-14" />
-              <span className="text-2xl font-black text-white tracking-tight">Ágil Docs</span>
-            </div>
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/30 text-teal-400 text-xs font-semibold px-4 py-1.5 rounded-full mb-8 tracking-wide uppercase">
               <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
@@ -561,9 +554,7 @@ export default function LandingPage() {
       <footer className="py-10 px-6 border-t border-slate-800/60 bg-slate-950">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="bg-teal-500 text-white rounded-lg p-1.5">
-              <FolderOpen className="w-4 h-4" />
-            </div>
+            <Image src="/logo.png" alt="Ágil Docs" width={28} height={28} className="w-7 h-7" />
             <span className="font-bold text-white text-sm">Ágil Docs</span>
           </div>
           <p className="text-slate-600 text-xs">

@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { Check, FolderOpen, MessageCircle, ArrowRight } from 'lucide-react'
+import Image from 'next/image'
+import { Check, MessageCircle, ArrowRight } from 'lucide-react'
 
 // TODO: substituir pelo seu número de WhatsApp (só dígitos, com DDD e código do Brasil)
 const WHATSAPP = '5583987095584'
@@ -73,9 +74,7 @@ export default function PlanosPage() {
       {/* Header */}
       <div className="pt-12 pb-10 px-4 text-center">
         <Link href="/" className="inline-flex items-center gap-2.5 mb-8">
-          <div className="bg-teal-500 text-white rounded-xl p-2">
-            <FolderOpen className="w-6 h-6" />
-          </div>
+          <Image src="/logo.png" alt="Ágil Docs" width={36} height={36} className="w-9 h-9" />
           <span className="text-white font-bold text-xl">Ágil Docs</span>
         </Link>
         <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">Planos e Preços</h1>
