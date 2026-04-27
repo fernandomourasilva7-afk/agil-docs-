@@ -1,19 +1,26 @@
-const key = process.env.ASAAS_API_KEY ?? ''
-const ASAAS_BASE = key.startsWith('$aact_hmlg_')
-  ? 'https://sandbox.asaas.com/api/v3'
-  : 'https://api.asaas.com/api/v3'
-
 async function req(path: string, method = 'GET', body?: object) {
-  const res = await fetch(`${ASAAS_BASE}${path}`, {
+  const key = process.env.ASAAS_API_KEY ?? ''
+  const base = key.startsWith('$aact_hmlg_')
+    ? 'https://sandbox.asaas.com/api/v3'
+    : 'https://api.asaas.com/api/v3'
+
+  const res = await fetch(`${base}${path}`, {
     method,
     headers: {
-      'access_token': process.env.ASAAS_API_KEY!,
+      'access_token': key,
       'Content-Type': 'application/json',
     },
     body: body ? JSON.stringify(body) : undefined,
     cache: 'no-store',
   })
-  return res.json()
+
+  const text = await res.text()
+  if (!text) return { errors: [{ description: `Asaas: resposta vazia (HTTP ${res.status})` }] }
+  try {
+    return JSON.parse(text)
+  } catch {
+    return { errors: [{ description: `Asaas: resposta inválida (HTTP ${res.status}): ${text.slice(0, 200)}` }] }
+  }
 }
 
 export async function criarCliente(dados: { name: string; email: string; cpfCnpj: string }) {
