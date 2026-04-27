@@ -11,17 +11,18 @@ export async function criarCheckout(dados: {
   plano: string
   planoLabel: string
   valor: number
+  customerId?: string
 }) {
   const baseUrl = process.env.NEXT_PUBLIC_URL ?? 'https://agil-docs.vercel.app'
 
-  const customer = await stripe.customers.create({
+  const customerId = dados.customerId ?? (await stripe.customers.create({
     email: dados.email,
     name: dados.nome,
     metadata: { userId: dados.userId },
-  })
+  })).id
 
   const session = await stripe.checkout.sessions.create({
-    customer: customer.id,
+    customer: customerId,
     mode: 'subscription',
     payment_method_types: ['card'],
     line_items: [
@@ -40,5 +41,5 @@ export async function criarCheckout(dados: {
     metadata: { userId: dados.userId, plano: dados.plano },
   })
 
-  return { customerId: customer.id, checkoutUrl: session.url }
+  return { customerId, checkoutUrl: session.url }
 }
