@@ -62,10 +62,13 @@ export async function contratarPlano(dados: {
       }).eq('id', user.id)
     }
 
+    // Asaas não aceita PIX direto em assinaturas — usa UNDEFINED para abrir checkout com PIX disponível
+    const billingType = dados.metodoPagamento === 'PIX' ? 'UNDEFINED' : dados.metodoPagamento
+
     // Cria a assinatura
     const assinatura = await criarAssinatura({
       customer: customerId,
-      billingType: dados.metodoPagamento,
+      billingType,
       value: info.preco,
       nextDueDate: proximaData(),
       cycle: 'MONTHLY',
