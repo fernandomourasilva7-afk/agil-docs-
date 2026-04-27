@@ -64,7 +64,7 @@ export async function contratarPlano(dados: {
     // Cria a assinatura
     const assinatura = await criarAssinatura({
       customer: customerId,
-      billingType: 'BOLETO',
+      billingType: 'UNDEFINED',
       value: info.preco,
       nextDueDate: proximaData(),
       cycle: 'MONTHLY',
