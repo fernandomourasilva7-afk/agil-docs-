@@ -1,4 +1,7 @@
-const ASAAS_BASE = 'https://api.asaas.com/api/v3'
+const key = process.env.ASAAS_API_KEY ?? ''
+const ASAAS_BASE = key.startsWith('$aact_hmlg_')
+  ? 'https://sandbox.asaas.com/api/v3'
+  : 'https://api.asaas.com/api/v3'
 
 async function req(path: string, method = 'GET', body?: object) {
   const res = await fetch(`${ASAAS_BASE}${path}`, {
