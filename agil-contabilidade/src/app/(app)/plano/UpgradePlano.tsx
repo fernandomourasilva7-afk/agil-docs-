@@ -66,7 +66,7 @@ export default function UpgradePlano({ planosSuperiores }: { planosSuperiores: P
         })}
       </div>
       <p className="text-xs text-gray-400 mt-4">
-        Pagamento via cartão de crédito pelo Mercado Pago. Cobrança mensal automática.
+        Pagamento via cartão de crédito pelo Stripe. Cobrança mensal automática.
       </p>
     </div>
   )

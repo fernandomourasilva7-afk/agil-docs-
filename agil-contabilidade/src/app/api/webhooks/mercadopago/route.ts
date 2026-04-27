@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { buscarAssinatura } from '@/lib/mercadopago'
 
 const PLANO_POR_VALOR: Record<number, string> = {
   79: 'starter',
@@ -12,40 +11,38 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
 
-    if (body.type !== 'subscription_preapproval') {
+    // MP envia notificações de pagamento com type "payment"
+    if (body.type !== 'payment') {
       return NextResponse.json({ ok: true })
     }
 
-    const preapprovalId = body.data?.id as string | undefined
-    if (!preapprovalId) return NextResponse.json({ ok: true })
+    const paymentId = body.data?.id as string | undefined
+    if (!paymentId) return NextResponse.json({ ok: true })
 
-    const preapproval = await buscarAssinatura(preapprovalId)
+    // Busca os detalhes do pagamento via API do MP
+    const token = process.env.MP_ACCESS_TOKEN ?? ''
+    const res = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const pagamento = await res.json()
 
-    if (preapproval.status !== 'authorized') {
+    if (pagamento.status !== 'approved') {
       return NextResponse.json({ ok: true })
     }
 
-    const valor = Math.round(preapproval.auto_recurring?.transaction_amount ?? 0)
+    const valor = Math.round(pagamento.transaction_amount ?? 0)
     const plano = PLANO_POR_VALOR[valor]
     if (!plano) return NextResponse.json({ ok: true })
 
+    // external_reference tem o user ID do contador
+    const userId = pagamento.external_reference as string | undefined
+    if (!userId) return NextResponse.json({ ok: true })
+
     const admin = createAdminClient()
-
-    const { data: contador } = await admin
-      .from('contadores')
-      .select('id')
-      .eq('mp_subscription_id', preapprovalId)
-      .single()
-
-    if (!contador) {
-      console.error('Webhook MP: contador não encontrado para preapproval', preapprovalId)
-      return NextResponse.json({ ok: true })
-    }
-
     await admin
       .from('contadores')
-      .update({ plano })
-      .eq('id', contador.id)
+      .update({ plano, mp_subscription_id: String(paymentId) })
+      .eq('id', userId)
 
     return NextResponse.json({ ok: true })
   } catch (err) {
