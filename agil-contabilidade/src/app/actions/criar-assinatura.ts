@@ -20,14 +20,15 @@ export async function contratarPlano(dados: {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Sessão expirada. Faça login novamente.' }
 
-    const admin = createAdminClient()
-    const { data: contador } = await admin
+    const { data: contador } = await supabase
       .from('contadores')
       .select('nome, asaas_customer_id, plano')
       .eq('id', user.id)
       .single()
 
     if (!contador) return { error: 'Perfil não encontrado.' }
+
+    const admin = createAdminClient()
 
     const info = PLANOS[dados.plano]
     if (!info || info.preco === 0) return { error: 'Plano inválido.' }
