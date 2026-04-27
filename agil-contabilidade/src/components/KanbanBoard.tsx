@@ -44,20 +44,20 @@ const COLUNAS: Coluna[] = [
     dotCor: 'bg-blue-400',
   },
   {
-    id: 'falta_documentos',
-    label: 'Falta Documentos',
-    textoCor: 'text-yellow-700',
-    bgCor: 'bg-yellow-50',
-    borderCor: 'border-yellow-200',
-    dotCor: 'bg-yellow-400',
-  },
-  {
     id: 'documentos_enviados',
     label: 'Docs Enviados',
     textoCor: 'text-purple-700',
     bgCor: 'bg-purple-50',
     borderCor: 'border-purple-200',
     dotCor: 'bg-purple-400',
+  },
+  {
+    id: 'falta_documentos',
+    label: 'Falta Documentos',
+    textoCor: 'text-yellow-700',
+    bgCor: 'bg-yellow-50',
+    borderCor: 'border-yellow-200',
+    dotCor: 'bg-yellow-400',
   },
   {
     id: 'fazendo_declaracao',
