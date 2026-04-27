@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { FolderOpen, LayoutDashboard, UserPlus, LogOut, X, Menu, Sparkles, BarChart2, Crown } from 'lucide-react'
+import { LayoutDashboard, UserPlus, LogOut, X, Menu, Sparkles, BarChart2, Crown } from 'lucide-react'
+import Image from 'next/image'
 
 const ADMIN_EMAIL = 'fernandomourasilva7@gmail.com'
 
@@ -30,9 +31,7 @@ function NavContent({ onClose, isAdmin }: { onClose?: () => void; isAdmin: boole
     <div className="flex flex-col h-full bg-slate-900">
       <div className="flex items-center justify-between px-4 py-5 border-b border-slate-700/60">
         <div className="flex items-center gap-2.5">
-          <div className="bg-teal-500 text-white rounded-lg p-1.5">
-            <FolderOpen className="w-5 h-5" />
-          </div>
+          <Image src="/logo.png" alt="Ágil Docs" width={32} height={32} className="w-8 h-8" />
           <span className="font-bold text-white text-lg tracking-tight">Ágil Docs</span>
         </div>
         {onClose && (

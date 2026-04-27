@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import Image from "next/image";
 import {
   FolderOpen, Loader2, Eye, EyeOff, Check, ArrowRight,
   Upload, Link2, LayoutDashboard, FileCheck, QrCode, Download,
@@ -584,9 +585,7 @@ export default function LandingPage() {
               {/* Painel esquerdo */}
               <div className="hidden lg:flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-teal-950 p-8">
                 <div className="flex items-center gap-2 mb-7">
-                  <div className="bg-teal-500 text-white rounded-lg p-1.5">
-                    <FolderOpen className="w-4 h-4" />
-                  </div>
+                  <Image src="/logo.png" alt="Ágil Docs" width={28} height={28} className="w-7 h-7" />
                   <span className="font-bold text-white text-sm">Ágil Docs</span>
                 </div>
                 <h3 className="text-xl font-black text-white mb-1">O sistema dos contadores</h3>
@@ -618,9 +617,7 @@ export default function LandingPage() {
               {/* Painel direito — formulário de login */}
               <div className="p-6 sm:p-8 flex flex-col justify-center overflow-y-auto">
                 <div className="flex items-center gap-2 mb-4 lg:hidden">
-                  <div className="bg-teal-500 text-white rounded-lg p-1.5">
-                    <FolderOpen className="w-4 h-4" />
-                  </div>
+                  <Image src="/logo.png" alt="Ágil Docs" width={28} height={28} className="w-7 h-7" />
                   <span className="font-bold text-gray-900 text-sm">Ágil Docs</span>
                 </div>
                 <div className="mb-5">
@@ -659,9 +656,7 @@ export default function LandingPage() {
               {/* Painel esquerdo — planos (só desktop) */}
               <div className="hidden lg:flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-teal-950 p-8 overflow-y-auto">
                 <div className="flex items-center gap-2 mb-7">
-                  <div className="bg-teal-500 text-white rounded-lg p-1.5">
-                    <FolderOpen className="w-4 h-4" />
-                  </div>
+                  <Image src="/logo.png" alt="Ágil Docs" width={28} height={28} className="w-7 h-7" />
                   <span className="font-bold text-white text-sm">Ágil Docs</span>
                 </div>
                 <h3 className="text-xl font-black text-white mb-1">Escolha seu plano</h3>
@@ -713,9 +708,7 @@ export default function LandingPage() {
               {/* Painel direito — formulário */}
               <div className="p-6 sm:p-8 overflow-y-auto">
                 <div className="flex items-center gap-2 mb-4 lg:hidden">
-                  <div className="bg-teal-500 text-white rounded-lg p-1.5">
-                    <FolderOpen className="w-4 h-4" />
-                  </div>
+                  <Image src="/logo.png" alt="Ágil Docs" width={28} height={28} className="w-7 h-7" />
                   <span className="font-bold text-gray-900 text-sm">Ágil Docs</span>
                 </div>
                 <div className="mb-4">
