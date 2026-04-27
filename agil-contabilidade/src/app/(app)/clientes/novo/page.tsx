@@ -130,6 +130,7 @@ export default function NovoClientePage() {
         slug,
         contador_id: user.id,
         valor_honorario: honorario ? parseFloat(honorario.replace(",", ".")) : null,
+        status: 'link_enviado',
       })
       .select()
       .single();
