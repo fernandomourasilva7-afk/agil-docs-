@@ -9,6 +9,7 @@ export async function criarCheckout(dados: {
   email: string
   nome: string
   plano: string
+  planoLabel: string
   valor: number
 }) {
   const baseUrl = process.env.NEXT_PUBLIC_URL ?? 'https://agil-docs.vercel.app'
@@ -27,7 +28,7 @@ export async function criarCheckout(dados: {
       {
         price_data: {
           currency: 'brl',
-          product_data: { name: `Ágil Docs — Plano ${dados.plano}` },
+          product_data: { name: `Ágil Docs — Plano ${dados.planoLabel}` },
           unit_amount: dados.valor * 100,
           recurring: { interval: 'month' },
         },

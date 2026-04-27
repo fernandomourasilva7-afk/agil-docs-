@@ -28,7 +28,8 @@ export async function contratarPlano(dados: {
       userId: user.id,
       email: user.email!,
       nome: contador.nome,
-      plano: info.label,
+      plano: dados.plano,
+      planoLabel: info.label,
       valor: info.preco,
     })
 
