@@ -1,8 +1,6 @@
 async function req(path: string, method = 'GET', body?: object) {
   const key = process.env.ASAAS_API_KEY ?? ''
-  const base = key.startsWith('$aact_hmlg_')
-    ? 'https://sandbox.asaas.com/api/v3'
-    : 'https://api.asaas.com/api/v3'
+  const base = 'https://www.asaas.com/api/v3'
 
   const url = `${base}${path}`
   console.log('[Asaas] chamando:', method, url)
