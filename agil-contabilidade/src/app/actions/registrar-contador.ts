@@ -8,6 +8,7 @@ export async function registrarContador(dados: {
   nome: string
   telefone: string
   crc?: string
+  cpfCnpj: string
 }): Promise<{ error?: string }> {
   try {
     const admin = createAdminClient()
@@ -31,6 +32,7 @@ export async function registrarContador(dados: {
       nome: dados.nome.trim(),
       telefone: dados.telefone.trim(),
       crc: dados.crc ? dados.crc.trim().toUpperCase() : null,
+      cpf_cnpj: dados.cpfCnpj.replace(/\D/g, ''),
       plano: 'free',
     })
 

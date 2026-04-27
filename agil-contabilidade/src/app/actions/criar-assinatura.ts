@@ -15,7 +15,7 @@ export async function contratarPlano(dados: {
 
     const { data: contador } = await supabase
       .from('contadores')
-      .select('nome, plano, stripe_customer_id')
+      .select('nome, plano, stripe_customer_id, cpf_cnpj')
       .eq('id', user.id)
       .single()
 
@@ -32,6 +32,7 @@ export async function contratarPlano(dados: {
       planoLabel: info.label,
       valor: info.preco,
       customerId: contador.stripe_customer_id ?? undefined,
+      cpfCnpj: contador.cpf_cnpj ?? undefined,
     })
 
     const admin = createAdminClient()

@@ -12,14 +12,26 @@ export async function criarCheckout(dados: {
   planoLabel: string
   valor: number
   customerId?: string
+  cpfCnpj?: string
 }) {
   const baseUrl = process.env.NEXT_PUBLIC_URL ?? 'https://agil-docs.vercel.app'
 
-  const customerId = dados.customerId ?? (await stripe.customers.create({
-    email: dados.email,
-    name: dados.nome,
-    metadata: { userId: dados.userId },
-  })).id
+  let customerId = dados.customerId
+  if (!customerId) {
+    const customer = await stripe.customers.create({
+      email: dados.email,
+      name: dados.nome,
+      metadata: { userId: dados.userId },
+    })
+    customerId = customer.id
+    if (dados.cpfCnpj) {
+      const digits = dados.cpfCnpj.replace(/\D/g, '')
+      await stripe.customers.createTaxId(customerId, {
+        type: digits.length === 14 ? 'br_cnpj' : 'br_cpf',
+        value: digits,
+      })
+    }
+  }
 
   const session = await stripe.checkout.sessions.create({
     customer: customerId,

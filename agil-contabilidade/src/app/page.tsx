@@ -126,6 +126,7 @@ export default function LandingPage() {
   const [emailCad, setEmailCad] = useState("");
   const [telefone, setTelefone] = useState("");
   const [crc, setCrc] = useState("");
+  const [cpfCnpj, setCpfCnpj] = useState("");
   const [senhaCad, setSenhaCad] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [planoSelecionado, setPlanoSelecionado] = useState("free");
@@ -161,13 +162,30 @@ export default function LandingPage() {
     setCarregando(false);
   }
 
+  function mascaraCpfCnpj(valor: string) {
+    const digits = valor.replace(/\D/g, '').slice(0, 14)
+    if (digits.length <= 11) {
+      return digits
+        .replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+        .replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3')
+        .replace(/(\d{3})(\d{0,3})/, '$1.$2')
+    }
+    return digits
+      .replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+      .replace(/(\d{2})(\d{3})(\d{3})(\d{0,4})/, '$1.$2.$3/$4')
+      .replace(/(\d{2})(\d{3})(\d{0,3})/, '$1.$2.$3')
+      .replace(/(\d{2})(\d{0,3})/, '$1.$2')
+  }
+
   async function handleCadastrar(e: React.FormEvent) {
     e.preventDefault();
     if (senhaCad !== confirmarSenha) { toast.error("As senhas não coincidem."); return; }
     if (senhaCad.length < 6) { toast.error("A senha deve ter ao menos 6 caracteres."); return; }
+    const digits = cpfCnpj.replace(/\D/g, '')
+    if (digits.length !== 11 && digits.length !== 14) { toast.error("Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido."); return; }
     setCarregando(true);
     try {
-      const resultado = await registrarContador({ nome, email: emailCad, telefone, crc, senha: senhaCad });
+      const resultado = await registrarContador({ nome, email: emailCad, telefone, crc, senha: senhaCad, cpfCnpj });
       if (resultado?.error) {
         toast.error(resultado.error);
         return;
@@ -720,6 +738,10 @@ export default function LandingPage() {
                   <div className="space-y-1.5">
                     <Label htmlFor="crc">CRC <span className="text-gray-400 font-normal">(opcional)</span></Label>
                     <Input id="crc" placeholder="CRC/SP-123456" value={crc} onChange={(e) => setCrc(e.target.value)} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cpfCnpj">CPF / CNPJ *</Label>
+                    <Input id="cpfCnpj" placeholder="000.000.000-00 ou 00.000.000/0000-00" value={cpfCnpj} onChange={(e) => setCpfCnpj(mascaraCpfCnpj(e.target.value))} required />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="senhaCad">Senha *</Label>
