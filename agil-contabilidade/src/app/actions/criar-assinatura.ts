@@ -14,6 +14,7 @@ function proximaData() {
 export async function contratarPlano(dados: {
   plano: PlanoKey
   cpf: string
+  metodoPagamento: 'PIX' | 'CREDIT_CARD'
 }): Promise<{ error?: string; url?: string }> {
   try {
     const supabase = await createClient()
@@ -64,7 +65,7 @@ export async function contratarPlano(dados: {
     // Cria a assinatura
     const assinatura = await criarAssinatura({
       customer: customerId,
-      billingType: 'UNDEFINED',
+      billingType: dados.metodoPagamento,
       value: info.preco,
       nextDueDate: proximaData(),
       cycle: 'MONTHLY',

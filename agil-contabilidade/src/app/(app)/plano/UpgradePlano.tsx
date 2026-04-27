@@ -3,13 +3,15 @@
 import { useState } from 'react'
 import { PLANOS, PlanoKey } from '@/lib/planos'
 import { contratarPlano } from '@/app/actions/criar-assinatura'
-import { Loader2, ExternalLink, CreditCard } from 'lucide-react'
+import { Loader2, CreditCard, QrCode } from 'lucide-react'
 import { toast } from 'sonner'
+
+type MetodoPagamento = 'PIX' | 'CREDIT_CARD'
 
 export default function UpgradePlano({ planosSuperiores }: { planosSuperiores: PlanoKey[] }) {
   const [planoEscolhido, setPlanoEscolhido] = useState<PlanoKey | null>(null)
   const [cpf, setCpf] = useState('')
-  const [carregando, setCarregando] = useState(false)
+  const [carregando, setCarregando] = useState<MetodoPagamento | null>(null)
 
   function formatarCpf(v: string) {
     return v
@@ -20,28 +22,26 @@ export default function UpgradePlano({ planosSuperiores }: { planosSuperiores: P
       .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
   }
 
-  async function handleContratar(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleContratar(metodo: MetodoPagamento) {
     if (!planoEscolhido) return
-    setCarregando(true)
+    setCarregando(metodo)
     try {
-      const resultado = await contratarPlano({ plano: planoEscolhido, cpf })
+      const resultado = await contratarPlano({ plano: planoEscolhido, cpf, metodoPagamento: metodo })
       if (resultado.error) {
         toast.error(resultado.error)
         return
       }
       if (resultado.url) {
-        toast.success('Assinatura criada! Abrindo link de pagamento...')
         window.open(resultado.url, '_blank')
         setPlanoEscolhido(null)
         setCpf('')
       } else {
-        toast.success('Assinatura criada! Você receberá o boleto por e-mail.')
+        toast.success('Assinatura criada! Você receberá as instruções por e-mail.')
         setPlanoEscolhido(null)
         setCpf('')
       }
     } finally {
-      setCarregando(false)
+      setCarregando(null)
     }
   }
 
@@ -77,7 +77,7 @@ export default function UpgradePlano({ planosSuperiores }: { planosSuperiores: P
 
               {/* Formulário inline de CPF */}
               {planoEscolhido === key && (
-                <form onSubmit={handleContratar} className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+                <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       CPF (necessário para emitir cobrança)
@@ -88,24 +88,36 @@ export default function UpgradePlano({ planosSuperiores }: { planosSuperiores: P
                       placeholder="000.000.000-00"
                       value={cpf}
                       onChange={(e) => setCpf(formatarCpf(e.target.value))}
-                      required
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                     />
                     <p className="text-xs text-gray-400 mt-1">
                       Usado apenas para identificação na plataforma de pagamento.
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <button
-                      type="submit"
-                      disabled={carregando}
+                      type="button"
+                      onClick={() => handleContratar('PIX')}
+                      disabled={!!carregando}
                       className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors disabled:opacity-60"
                     >
-                      {carregando
+                      {carregando === 'PIX'
                         ? <Loader2 className="w-4 h-4 animate-spin" />
-                        : <ExternalLink className="w-4 h-4" />
+                        : <QrCode className="w-4 h-4" />
                       }
-                      {carregando ? 'Gerando...' : 'Ir para pagamento'}
+                      {carregando === 'PIX' ? 'Gerando...' : 'Pagar com PIX'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleContratar('CREDIT_CARD')}
+                      disabled={!!carregando}
+                      className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors disabled:opacity-60"
+                    >
+                      {carregando === 'CREDIT_CARD'
+                        ? <Loader2 className="w-4 h-4 animate-spin" />
+                        : <CreditCard className="w-4 h-4" />
+                      }
+                      {carregando === 'CREDIT_CARD' ? 'Gerando...' : 'Pagar com Cartão'}
                     </button>
                     <button
                       type="button"
@@ -115,14 +127,14 @@ export default function UpgradePlano({ planosSuperiores }: { planosSuperiores: P
                       Cancelar
                     </button>
                   </div>
-                </form>
+                </div>
               )}
             </div>
           )
         })}
       </div>
       <p className="text-xs text-gray-400 mt-4">
-        Após o pagamento, seu plano é ativado automaticamente. Cobrança mensal via boleto ou PIX.
+        Após o pagamento, seu plano é ativado automaticamente. Cobrança mensal via PIX ou cartão de crédito.
       </p>
     </div>
   )
