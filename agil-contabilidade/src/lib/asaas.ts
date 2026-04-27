@@ -1,8 +1,13 @@
 async function req(path: string, method = 'GET', body?: object) {
   const key = process.env.ASAAS_API_KEY ?? ''
-  const base = 'https://api.asaas.com/api/v3'
+  const base = key.startsWith('$aact_hmlg_')
+    ? 'https://sandbox.asaas.com/api/v3'
+    : 'https://api.asaas.com/api/v3'
 
-  const res = await fetch(`${base}${path}`, {
+  const url = `${base}${path}`
+  console.log('[Asaas] chamando:', method, url)
+
+  const res = await fetch(url, {
     method,
     headers: {
       'access_token': key,
@@ -13,6 +18,8 @@ async function req(path: string, method = 'GET', body?: object) {
   })
 
   const text = await res.text()
+  console.log('[Asaas] status:', res.status, '| body:', text.slice(0, 300))
+
   if (!text) return { errors: [{ description: `Asaas: resposta vazia (HTTP ${res.status})` }] }
   try {
     return JSON.parse(text)
