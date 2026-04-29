@@ -55,14 +55,19 @@ export default async function PagamentoPage({ params }: Props) {
   let pixPayload: string | null = null;
   let downloadUrls: { nome: string; url: string }[] = [];
 
-  if (!pagamentoConfirmado) {
-    const cidadeLimpa = (cliente.pix_cidade ?? "SAO PAULO")
+  function limparTexto(str: string, maxLen: number): string {
+    return str
       .normalize("NFD")
       .replace(/[̀-ͯ]/g, "")
-      .toUpperCase()
-      .slice(0, 15);
+      .replace(/[^\x20-\x7E]/g, "")
+      .trim()
+      .slice(0, maxLen);
+  }
 
-    const nomeLimpo = (cliente.pix_nome ?? "Contador").slice(0, 25);
+  if (!pagamentoConfirmado) {
+    const nomeLimpo   = limparTexto(cliente.pix_nome   ?? "Contador",  25);
+    const cidadeLimpa = limparTexto(cliente.pix_cidade ?? "SAO PAULO", 15).toUpperCase();
+    const mensagem    = limparTexto(`IR ${cliente.nome}`,              40);
     const txId = `AGIL${slug}`.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 25);
 
     const qr = QrCodePix({
@@ -71,7 +76,7 @@ export default async function PagamentoPage({ params }: Props) {
       name: nomeLimpo,
       city: cidadeLimpa,
       transactionId: txId,
-      message: `IR ${cliente.nome}`.slice(0, 40),
+      message: mensagem,
       value: valor,
     });
 
