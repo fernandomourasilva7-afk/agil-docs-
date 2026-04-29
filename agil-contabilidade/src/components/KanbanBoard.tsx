@@ -22,7 +22,7 @@ type ClienteKanban = {
   nome: string
   slug: string
   status: string
-  categorias: { id: string; nome: string; documentos: { id: string }[] }[]
+  categorias: { id: string; nome: string; observacao: string | null; documentos: { id: string }[] }[]
 }
 
 type Coluna = {
@@ -95,7 +95,7 @@ function CardConteudo({ cliente }: { cliente: ClienteKanban }) {
           {categoriasComDocs.map(cat => (
             <span
               key={cat.id}
-              className="text-[10px] bg-teal-50 text-teal-700 border border-teal-200 rounded px-1.5 py-0.5 leading-tight"
+              className={`text-[10px] rounded px-1.5 py-0.5 leading-tight border ${cat.observacao ? 'bg-red-50 text-red-700 border-red-200' : 'bg-teal-50 text-teal-700 border-teal-200'}`}
             >
               {cat.nome}
             </span>

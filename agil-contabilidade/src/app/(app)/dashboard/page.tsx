@@ -16,7 +16,7 @@ export default async function DashboardPage() {
   const [{ data: clientes }, { data: contadorData }] = await Promise.all([
     supabase
       .from("clientes")
-      .select(`id, nome, slug, status, categorias(id, nome, documentos(id))`)
+      .select(`id, nome, slug, status, categorias(id, nome, observacao, documentos(id))`)
       .order("created_at", { ascending: false }),
     supabase.from("contadores").select("plano").eq("id", user.id).single(),
   ]);
