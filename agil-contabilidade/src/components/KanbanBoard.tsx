@@ -22,7 +22,7 @@ type ClienteKanban = {
   nome: string
   slug: string
   status: string
-  categorias: { id: string; documentos: { id: string }[] }[]
+  categorias: { id: string; nome: string; documentos: { id: string }[] }[]
 }
 
 type Coluna = {
@@ -86,9 +86,22 @@ function calcProgresso(cliente: ClienteKanban) {
 
 function CardConteudo({ cliente }: { cliente: ClienteKanban }) {
   const { total, preenchidas, pct } = calcProgresso(cliente)
+  const categoriasComDocs = cliente.categorias.filter(c => c.documentos.length > 0)
   return (
     <>
       <p className="text-sm font-medium text-gray-900 truncate leading-tight">{cliente.nome}</p>
+      {categoriasComDocs.length > 0 && (
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {categoriasComDocs.map(cat => (
+            <span
+              key={cat.id}
+              className="text-[10px] bg-teal-50 text-teal-700 border border-teal-200 rounded px-1.5 py-0.5 leading-tight"
+            >
+              {cat.nome}
+            </span>
+          ))}
+        </div>
+      )}
       <div className="mt-2 space-y-1">
         <div className="flex justify-between text-xs text-gray-400">
           <span>{preenchidas}/{total} categorias</span>
