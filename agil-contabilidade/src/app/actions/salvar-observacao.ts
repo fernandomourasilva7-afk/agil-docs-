@@ -26,5 +26,13 @@ export async function salvarObservacao(categoriaId: string, observacao: string) 
 
   if (error) throw error
 
+  if (observacao.trim()) {
+    await supabase
+      .from('clientes')
+      .update({ status: 'falta_documentos' })
+      .eq('id', cat.cliente_id)
+  }
+
   revalidatePath(`/clientes/${cat.cliente_id}`)
+  revalidatePath('/dashboard')
 }
