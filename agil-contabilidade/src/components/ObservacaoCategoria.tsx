@@ -4,7 +4,16 @@ import { useState } from 'react'
 import { salvarObservacao } from '@/app/actions/salvar-observacao'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { MessageSquare, Loader2, Check, AlertCircle } from 'lucide-react'
+import { MessageSquare, Loader2, Check, AlertCircle, X } from 'lucide-react'
+
+function parseObservacoes(raw: string | null): string[] {
+  if (!raw) return []
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) return parsed.filter(Boolean)
+  } catch {}
+  return [raw]
+}
 
 export default function ObservacaoCategoria({
   catId,
@@ -13,17 +22,25 @@ export default function ObservacaoCategoria({
   catId: string
   observacaoAtual: string | null
 }) {
-  const [texto, setTexto] = useState(observacaoAtual ?? '')
-  const [observacaoSalva, setObservacaoSalva] = useState(observacaoAtual ?? '')
+  const [observacoes, setObservacoes] = useState<string[]>(() => parseObservacoes(observacaoAtual))
+  const [texto, setTexto] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [salvo, setSalvo] = useState(false)
 
+  async function persistir(lista: string[]) {
+    const payload = lista.length > 0 ? JSON.stringify(lista) : ''
+    await salvarObservacao(catId, payload)
+  }
+
   async function handleSalvar() {
+    if (!texto.trim()) return
     setSalvando(true)
     setSalvo(false)
     try {
-      await salvarObservacao(catId, texto)
-      setObservacaoSalva(texto.trim())
+      const novaLista = [...observacoes, texto.trim()]
+      await persistir(novaLista)
+      setObservacoes(novaLista)
+      setTexto('')
       setSalvo(true)
       toast.success('Observação salva!')
       setTimeout(() => setSalvo(false), 2000)
@@ -31,6 +48,17 @@ export default function ObservacaoCategoria({
       toast.error('Erro ao salvar observação.')
     } finally {
       setSalvando(false)
+    }
+  }
+
+  async function handleRemover(index: number) {
+    const novaLista = observacoes.filter((_, i) => i !== index)
+    try {
+      await persistir(novaLista)
+      setObservacoes(novaLista)
+      toast.success('Observação removida.')
+    } catch {
+      toast.error('Erro ao remover observação.')
     }
   }
 
@@ -47,12 +75,12 @@ export default function ObservacaoCategoria({
         rows={2}
         className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-teal-300 text-gray-700 placeholder-gray-300"
       />
-      <div className="mt-1.5 flex items-start gap-3">
+      <div className="mt-1.5">
         <Button
           size="sm"
-          className="gap-1.5 text-xs shrink-0 bg-teal-600 hover:bg-teal-700 text-white"
+          className="gap-1.5 text-xs bg-teal-600 hover:bg-teal-700 text-white"
           onClick={handleSalvar}
-          disabled={salvando}
+          disabled={salvando || !texto.trim()}
         >
           {salvando ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -63,13 +91,27 @@ export default function ObservacaoCategoria({
           )}
           {salvo ? 'Salvo!' : 'Salvar observação'}
         </Button>
-        {observacaoSalva && (
-          <p className="text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 flex-1 flex items-start gap-1.5">
-            <AlertCircle className="w-3.5 h-3.5 text-yellow-500 shrink-0 mt-0.5" />
-            {observacaoSalva}
-          </p>
-        )}
       </div>
+      {observacoes.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {observacoes.map((obs, i) => (
+            <div
+              key={i}
+              className="flex items-start gap-1.5 text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 max-w-full"
+            >
+              <AlertCircle className="w-3.5 h-3.5 text-yellow-500 shrink-0 mt-0.5" />
+              <span className="flex-1">{obs}</span>
+              <button
+                onClick={() => handleRemover(i)}
+                className="ml-1.5 text-gray-400 hover:text-red-500 transition-colors shrink-0"
+                aria-label="Remover observação"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

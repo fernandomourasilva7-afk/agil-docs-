@@ -26,7 +26,15 @@ export async function salvarObservacao(categoriaId: string, observacao: string) 
 
   if (error) throw error
 
-  if (observacao.trim()) {
+  const temObservacao = (() => {
+    if (!observacao.trim()) return false
+    try {
+      const arr = JSON.parse(observacao)
+      return Array.isArray(arr) ? arr.length > 0 : true
+    } catch { return true }
+  })()
+
+  if (temObservacao) {
     await supabase
       .from('clientes')
       .update({ status: 'falta_documentos' })

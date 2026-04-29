@@ -77,6 +77,14 @@ const COLUNAS: Coluna[] = [
   },
 ]
 
+function temObservacoes(observacao: string | null): boolean {
+  if (!observacao) return false
+  try {
+    const arr = JSON.parse(observacao)
+    return Array.isArray(arr) ? arr.length > 0 : true
+  } catch { return true }
+}
+
 function calcProgresso(cliente: ClienteKanban) {
   const total = cliente.categorias.length
   const preenchidas = cliente.categorias.filter((c) => c.documentos.length > 0).length
@@ -95,7 +103,7 @@ function CardConteudo({ cliente }: { cliente: ClienteKanban }) {
           {categoriasComDocs.map(cat => (
             <span
               key={cat.id}
-              className={`text-[10px] rounded px-1.5 py-0.5 leading-tight border ${cat.observacao ? 'bg-red-50 text-red-700 border-red-200' : 'bg-teal-50 text-teal-700 border-teal-200'}`}
+              className={`text-[10px] rounded px-1.5 py-0.5 leading-tight border ${temObservacoes(cat.observacao) ? 'bg-red-50 text-red-700 border-red-200' : 'bg-teal-50 text-teal-700 border-teal-200'}`}
             >
               {cat.nome}
             </span>
