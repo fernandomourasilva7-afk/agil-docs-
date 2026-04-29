@@ -87,7 +87,9 @@ function temObservacoes(observacao: string | null): boolean {
 
 function calcProgresso(cliente: ClienteKanban) {
   const total = cliente.categorias.length
-  const preenchidas = cliente.categorias.filter((c) => c.documentos.length > 0).length
+  const preenchidas = cliente.categorias.filter(
+    (c) => c.documentos.length > 0 && !temObservacoes(c.observacao)
+  ).length
   const pct = total > 0 ? Math.round((preenchidas / total) * 100) : 0
   return { total, preenchidas, pct }
 }
