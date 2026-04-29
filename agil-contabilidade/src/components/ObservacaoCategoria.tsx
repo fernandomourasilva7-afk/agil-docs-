@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { salvarObservacao } from '@/app/actions/salvar-observacao'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { MessageSquare, Loader2, Check } from 'lucide-react'
+import { MessageSquare, Loader2, Check, AlertCircle } from 'lucide-react'
 
 export default function ObservacaoCategoria({
   catId,
@@ -64,7 +64,8 @@ export default function ObservacaoCategoria({
           {salvo ? 'Salvo!' : 'Salvar observação'}
         </Button>
         {observacaoSalva && (
-          <p className="text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 flex-1">
+          <p className="text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 flex-1 flex items-start gap-1.5">
+            <AlertCircle className="w-3.5 h-3.5 text-yellow-500 shrink-0 mt-0.5" />
             {observacaoSalva}
           </p>
         )}
