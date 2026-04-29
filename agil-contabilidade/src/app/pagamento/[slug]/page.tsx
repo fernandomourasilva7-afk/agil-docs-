@@ -16,7 +16,7 @@ export default async function PagamentoPage({ params }: Props) {
 
   const { data: raw } = await supabase
     .from("clientes")
-    .select("id, nome, pix_chave, pix_nome, pix_cidade, pix_valor, pagamento_confirmado")
+    .select("id, nome, pix_chave, pix_tipo, pix_nome, pix_cidade, pix_valor, pagamento_confirmado")
     .eq("slug", slug)
     .single();
 
@@ -26,6 +26,7 @@ export default async function PagamentoPage({ params }: Props) {
     id: string;
     nome: string;
     pix_chave: string | null;
+    pix_tipo: string | null;
     pix_nome: string | null;
     pix_cidade: string | null;
     pix_valor: number | null;
@@ -55,6 +56,24 @@ export default async function PagamentoPage({ params }: Props) {
   let pixPayload: string | null = null;
   let downloadUrls: { nome: string; url: string }[] = [];
 
+  function sanitizarChave(chave: string, tipo: string | null): string {
+    const v = chave.trim();
+    switch (tipo) {
+      case "phone": {
+        const d = v.replace(/\D/g, "");
+        if (d.startsWith("55") && d.length >= 12) return `+${d}`;
+        return `+55${d}`;
+      }
+      case "cpf":
+      case "cnpj":
+        return v.replace(/\D/g, "");
+      case "email":
+        return v.toLowerCase();
+      default:
+        return v;
+    }
+  }
+
   function limparTexto(str: string, maxLen: number): string {
     return str
       .normalize("NFD")
@@ -72,7 +91,7 @@ export default async function PagamentoPage({ params }: Props) {
 
     const qr = QrCodePix({
       version: "01",
-      key: cliente.pix_chave,
+      key: sanitizarChave(cliente.pix_chave, cliente.pix_tipo),
       name: nomeLimpo,
       city: cidadeLimpa,
       transactionId: txId,
