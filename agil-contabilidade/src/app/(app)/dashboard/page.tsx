@@ -17,6 +17,7 @@ export default async function DashboardPage() {
     supabase
       .from("clientes")
       .select(`id, nome, slug, status, categorias(id, nome, observacao, documentos(id))`)
+      .eq("contador_id", user.id)
       .order("created_at", { ascending: false }),
     supabase.from("contadores").select("plano").eq("id", user.id).single(),
   ]);
