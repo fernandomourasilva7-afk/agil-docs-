@@ -1,0 +1,28 @@
+
+> agil-contabilidade@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.101:3000
+- Environments: .env.local
+✓ Ready in 347ms
+
+ GET /plano 200 in 1297ms (next.js: 127ms, proxy.ts: 623ms, application-code: 547ms)
+ GET /plano 200 in 617ms (next.js: 5ms, proxy.ts: 251ms, application-code: 361ms)
+ POST /plano 200 in 3.5s (next.js: 3ms, proxy.ts: 229ms, application-code: 3.3s)
+  └─ ƒ contratarPlano({"plano":"profissional"}) in 3269ms src/app/actions/criar-assinatura.ts
+  Reload env: .env.local
+ GET /plano 200 in 704ms (next.js: 53ms, proxy.ts: 608ms, application-code: 44ms)
+✓ Compiled in 109ms
+✓ Compiled in 161ms
+✓ Compiled in 126ms
+✓ Compiled in 64ms
+✓ Compiled in 62ms
+✓ Compiled in 51ms
+✓ Compiled in 88ms
+✓ Compiled in 81ms
+✓ Compiled in 61ms
+✓ Compiled in 448ms
+✓ Compiled in 51ms
+✓ Compiled in 606ms
