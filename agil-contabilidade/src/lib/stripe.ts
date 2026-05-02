@@ -42,7 +42,7 @@ export async function criarCheckout(dados: {
         price_data: {
           currency: 'brl',
           product_data: { name: `Ágil Docs — Plano ${dados.planoLabel}` },
-          unit_amount: dados.valor * 100,
+          unit_amount: Math.round(dados.valor * 100),
           recurring: { interval: 'month' },
         },
         quantity: 1,
