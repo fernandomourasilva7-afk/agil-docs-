@@ -293,11 +293,21 @@ export default function NovoClientePage() {
       <div className="max-w-lg mx-auto">
         <Card className="shadow-sm">
           <CardHeader>
-            <div className="flex items-center gap-3 mb-1">
-              <div className="bg-teal-100 text-teal-600 rounded-lg p-2">
-                <UserPlus className="w-5 h-5" />
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-3">
+                <div className="bg-teal-100 text-teal-600 rounded-lg p-2">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <CardTitle>Novo Cliente</CardTitle>
               </div>
-              <CardTitle>Novo Cliente</CardTitle>
+              <button
+                type="button"
+                onClick={() => router.push("/dashboard")}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-md hover:bg-gray-100"
+                aria-label="Fechar"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
             <CardDescription>
               Selecione os tipos de documentos necessários para este cliente.
