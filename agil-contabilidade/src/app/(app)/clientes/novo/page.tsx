@@ -11,18 +11,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, UserPlus, CheckCircle2, MessageCircle, ExternalLink, UserPlus2 } from "lucide-react";
+import { Loader2, UserPlus, CheckCircle2, MessageCircle, ExternalLink, UserPlus2, Plus, X } from "lucide-react";
 import Link from "next/link";
 
-const CATEGORIAS_PADRAO = [
-  { nome: "Documentos Pessoais", ordem: 0 },
-  { nome: "Notas Médicas", ordem: 1 },
-  { nome: "Notas Educação", ordem: 2 },
-  { nome: "Informes Bancários", ordem: 3 },
-  { nome: "Corretoras / Investimentos", ordem: 4 },
-  { nome: "Criptomoedas", ordem: 5 },
-  { nome: "Imóveis", ordem: 6 },
-  { nome: "Outros Documentos", ordem: 7 },
+const CATEGORIAS_LISTA = [
+  { nome: "Documentos Pessoais",                  padrao: true  },
+  { nome: "Notas Médicas / Plano de Saúde",       padrao: true  },
+  { nome: "Notas de Educação",                    padrao: true  },
+  { nome: "Informes Bancários",                   padrao: true  },
+  { nome: "Corretoras / Investimentos",           padrao: true  },
+  { nome: "Criptomoedas",                         padrao: true  },
+  { nome: "Imóveis",                              padrao: true  },
+  { nome: "Outros Documentos",                    padrao: true  },
+  { nome: "Comprovante de Residência",            padrao: false },
+  { nome: "Informe de Rendimentos (empregador)",  padrao: false },
+  { nome: "Pró-labore / Distribuição de Lucros",  padrao: false },
+  { nome: "Recibos de Aluguel Recebido",          padrao: false },
+  { nome: "Pensão Alimentícia",                   padrao: false },
+  { nome: "Previdência Privada (PGBL/VGBL)",      padrao: false },
+  { nome: "Compra / Venda de Imóvel",             padrao: false },
+  { nome: "Dependentes",                          padrao: false },
+  { nome: "Doações",                              padrao: false },
 ];
 
 function gerarSlug(nome: string): string {
@@ -52,6 +61,7 @@ type ClienteCriado = {
   slug: string;
   nome: string;
   telefone: string;
+  totalCategorias: number;
 };
 
 export default function NovoClientePage() {
@@ -61,11 +71,61 @@ export default function NovoClientePage() {
   const [honorario, setHonorario] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [clienteCriado, setClienteCriado] = useState<ClienteCriado | null>(null);
+
+  const [selecionadas, setSelecionadas] = useState<Set<string>>(
+    () => new Set(CATEGORIAS_LISTA.filter((c) => c.padrao).map((c) => c.nome))
+  );
+  const [customCats, setCustomCats] = useState<string[]>([]);
+  const [novaCategoria, setNovaCategoria] = useState("");
+
   const router = useRouter();
+
+  function toggleCategoria(nome: string) {
+    setSelecionadas((prev) => {
+      const next = new Set(prev);
+      if (next.has(nome)) next.delete(nome);
+      else next.add(nome);
+      return next;
+    });
+  }
+
+  function marcarTodas() {
+    setSelecionadas(new Set(CATEGORIAS_LISTA.map((c) => c.nome)));
+  }
+
+  function desmarcarTodas() {
+    setSelecionadas(new Set());
+  }
+
+  function adicionarCustom() {
+    const nome = novaCategoria.trim();
+    if (!nome) return;
+    if (CATEGORIAS_LISTA.some((c) => c.nome.toLowerCase() === nome.toLowerCase())) {
+      toast.error("Essa categoria já existe na lista.");
+      return;
+    }
+    if (customCats.includes(nome)) {
+      toast.error("Categoria já adicionada.");
+      return;
+    }
+    setCustomCats((prev) => [...prev, nome]);
+    setNovaCategoria("");
+  }
+
+  function removerCustom(nome: string) {
+    setCustomCats((prev) => prev.filter((c) => c !== nome));
+  }
+
+  const totalSelecionadas = selecionadas.size + customCats.length;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!nome.trim()) return;
+
+    if (totalSelecionadas === 0) {
+      toast.error("Selecione pelo menos uma categoria de documento.");
+      return;
+    }
 
     setCarregando(true);
     const supabase = createClient();
@@ -74,6 +134,7 @@ export default function NovoClientePage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast.error("Sessão expirada. Faça login novamente.");
+      setCarregando(false);
       return;
     }
 
@@ -108,7 +169,7 @@ export default function NovoClientePage() {
       }
     }
 
-    // Verificar nome duplicado (sem distinção de maiúsculas/minúsculas)
+    // Verificar nome duplicado
     const { data: dupNome } = await supabase
       .from("clientes")
       .select("id")
@@ -141,9 +202,12 @@ export default function NovoClientePage() {
       return;
     }
 
-    const { error: erroCats } = await supabase.from("categorias").insert(
-      CATEGORIAS_PADRAO.map((c) => ({ ...c, cliente_id: cliente.id }))
-    );
+    const todasCategorias = [
+      ...[...selecionadas].map((nome, i) => ({ nome, ordem: i, cliente_id: cliente.id })),
+      ...customCats.map((nome, i) => ({ nome, ordem: selecionadas.size + i, cliente_id: cliente.id })),
+    ];
+
+    const { error: erroCats } = await supabase.from("categorias").insert(todasCategorias);
 
     if (erroCats) {
       toast.error("Erro ao criar categorias.");
@@ -151,7 +215,7 @@ export default function NovoClientePage() {
       return;
     }
 
-    setClienteCriado({ id: cliente.id, slug: cliente.slug, nome: nome.trim(), telefone });
+    setClienteCriado({ id: cliente.id, slug: cliente.slug, nome: nome.trim(), telefone, totalCategorias: totalSelecionadas });
     setCarregando(false);
   }
 
@@ -175,7 +239,8 @@ export default function NovoClientePage() {
                 Cliente criado com sucesso!
               </h2>
               <p className="text-gray-500 text-sm mb-6">
-                As pastas de documentos foram criadas automaticamente para{" "}
+                <span className="font-medium text-gray-700">{clienteCriado.totalCategorias}</span>{" "}
+                {clienteCriado.totalCategorias === 1 ? "categoria foi criada" : "categorias foram criadas"} para{" "}
                 <span className="font-medium text-gray-700">{clienteCriado.nome}</span>.
               </p>
 
@@ -207,6 +272,8 @@ export default function NovoClientePage() {
                     setTelefone("");
                     setEmail("");
                     setHonorario("");
+                    setSelecionadas(new Set(CATEGORIAS_LISTA.filter((c) => c.padrao).map((c) => c.nome)));
+                    setCustomCats([]);
                   }}
                   className="w-full text-sm text-gray-400 hover:text-gray-600 flex items-center justify-center gap-1.5 py-2"
                 >
@@ -233,7 +300,7 @@ export default function NovoClientePage() {
               <CardTitle>Novo Cliente</CardTitle>
             </div>
             <CardDescription>
-              Após criar, o sistema gera automaticamente as pastas de documentos e um link único para o cliente.
+              Selecione os tipos de documentos necessários para este cliente.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -303,15 +370,87 @@ export default function NovoClientePage() {
                 </p>
               </div>
 
-              <div className="bg-teal-50 rounded-lg p-3 text-sm text-teal-700">
-                <p className="font-medium mb-1">Pastas criadas automaticamente:</p>
-                <ul className="space-y-0.5 text-teal-600">
-                  {CATEGORIAS_PADRAO.map((c) => (
-                    <li key={c.nome} className="flex items-center gap-1.5">
-                      <span className="text-teal-400">•</span> {c.nome}
-                    </li>
+              {/* Seleção de categorias */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Documentos necessários</Label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={marcarTodas}
+                      className="text-xs text-teal-600 hover:text-teal-700 font-medium"
+                    >
+                      Marcar todas
+                    </button>
+                    <span className="text-gray-300">|</span>
+                    <button
+                      type="button"
+                      onClick={desmarcarTodas}
+                      className="text-xs text-gray-400 hover:text-gray-600"
+                    >
+                      Desmarcar
+                    </button>
+                  </div>
+                </div>
+
+                <div className="border border-gray-200 rounded-lg divide-y divide-gray-100 max-h-64 overflow-y-auto">
+                  {CATEGORIAS_LISTA.map((cat) => (
+                    <label
+                      key={cat.nome}
+                      className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selecionadas.has(cat.nome)}
+                        onChange={() => toggleCategoria(cat.nome)}
+                        className="w-4 h-4 accent-teal-600 shrink-0"
+                      />
+                      <span className="text-sm text-gray-700">{cat.nome}</span>
+                    </label>
                   ))}
-                </ul>
+
+                  {/* Categorias personalizadas adicionadas */}
+                  {customCats.map((cat) => (
+                    <div key={cat} className="flex items-center gap-3 px-3 py-2.5 bg-teal-50">
+                      <input type="checkbox" checked readOnly className="w-4 h-4 accent-teal-600 shrink-0" />
+                      <span className="text-sm text-gray-700 flex-1">{cat}</span>
+                      <button
+                        type="button"
+                        onClick={() => removerCustom(cat)}
+                        className="text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Input para categoria personalizada */}
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Adicionar categoria personalizada..."
+                    value={novaCategoria}
+                    onChange={(e) => setNovaCategoria(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); adicionarCustom(); } }}
+                    className="text-sm"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={adicionarCustom}
+                    disabled={!novaCategoria.trim()}
+                    className="shrink-0 gap-1"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Adicionar
+                  </Button>
+                </div>
+
+                <p className="text-xs text-gray-400">
+                  {totalSelecionadas === 0
+                    ? "Nenhuma categoria selecionada."
+                    : `${totalSelecionadas} ${totalSelecionadas === 1 ? "categoria selecionada" : "categorias selecionadas"}.`}
+                </p>
               </div>
 
               <Button
