@@ -15,7 +15,7 @@ import {
 import { useDroppable, useDraggable } from '@dnd-kit/core'
 import { atualizarStatus } from '@/app/actions/atualizar-status'
 import Link from 'next/link'
-import { Link2, FileCheck2, FileWarning, FileText, CheckCircle2, MoreHorizontal, GripVertical } from 'lucide-react'
+import { Link2, FileCheck2, FileWarning, FileText, CheckCircle2, MoreHorizontal } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 type ClienteKanban = {
@@ -190,24 +190,19 @@ function DraggableCard({ cliente }: { cliente: ClienteKanban }) {
     <div
       ref={setNodeRef}
       style={style}
-      className={`group select-none ${isDragging ? 'opacity-40' : ''}`}
+      {...attributes}
+      {...listeners}
+      className={`select-none cursor-grab active:cursor-grabbing ${isDragging ? 'opacity-40' : ''}`}
     >
-      <div
-        className={`relative rounded-xl border shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${cardStyle(pct, temPendencias)}`}
-      >
-        <button
-          {...listeners}
-          {...attributes}
-          className="absolute top-2.5 right-2.5 w-5 h-5 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing hover:bg-black/5 z-10"
-          aria-label="Arrastar cliente"
+      <Link href={`/clientes/${cliente.id}`} draggable={false}>
+        <div
+          className={`rounded-xl border shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${cardStyle(pct, temPendencias)}`}
         >
-          <GripVertical className="w-3.5 h-3.5 text-gray-400" />
-        </button>
-
-        <Link href={`/clientes/${cliente.id}`} className="block p-4 pr-9">
-          <CardConteudo cliente={cliente} />
-        </Link>
-      </div>
+          <div className="p-4">
+            <CardConteudo cliente={cliente} />
+          </div>
+        </div>
+      </Link>
     </div>
   )
 }
