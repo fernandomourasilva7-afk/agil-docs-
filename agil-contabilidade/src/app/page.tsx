@@ -238,7 +238,7 @@ export default function LandingPage() {
         {/* Imagem de fundo — substitua a URL pela sua foto */}
         <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80"
+            src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1920&q=80"
             alt=""
             className="w-full h-full object-cover object-center"
           />
