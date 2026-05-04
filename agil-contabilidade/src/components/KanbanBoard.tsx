@@ -15,7 +15,8 @@ import {
 import { useDroppable, useDraggable } from '@dnd-kit/core'
 import { atualizarStatus } from '@/app/actions/atualizar-status'
 import Link from 'next/link'
-import { GripVertical } from 'lucide-react'
+import { Link2, FileCheck2, FileWarning, FileText, CheckCircle2, MoreHorizontal, GripVertical } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 type ClienteKanban = {
   id: string
@@ -28,52 +29,58 @@ type ClienteKanban = {
 type Coluna = {
   id: string
   label: string
-  textoCor: string
-  bgCor: string
-  borderCor: string
-  dotCor: string
+  icon: LucideIcon
+  accentColor: string
+  iconBg: string
+  badgeCls: string
+  ringCls: string
 }
 
 const COLUNAS: Coluna[] = [
   {
     id: 'link_enviado',
     label: 'Link Enviado',
-    textoCor: 'text-blue-700',
-    bgCor: 'bg-blue-50',
-    borderCor: 'border-blue-200',
-    dotCor: 'bg-blue-400',
+    icon: Link2,
+    accentColor: '#3b82f6',
+    iconBg: 'bg-blue-100',
+    badgeCls: 'bg-blue-100 text-blue-700',
+    ringCls: 'ring-blue-200',
   },
   {
     id: 'documentos_enviados',
     label: 'Docs Enviados',
-    textoCor: 'text-purple-700',
-    bgCor: 'bg-purple-50',
-    borderCor: 'border-purple-200',
-    dotCor: 'bg-purple-400',
+    icon: FileCheck2,
+    accentColor: '#8b5cf6',
+    iconBg: 'bg-violet-100',
+    badgeCls: 'bg-violet-100 text-violet-700',
+    ringCls: 'ring-violet-200',
   },
   {
     id: 'falta_documentos',
     label: 'Falta Documentos',
-    textoCor: 'text-yellow-700',
-    bgCor: 'bg-yellow-50',
-    borderCor: 'border-yellow-200',
-    dotCor: 'bg-yellow-400',
+    icon: FileWarning,
+    accentColor: '#f59e0b',
+    iconBg: 'bg-amber-100',
+    badgeCls: 'bg-amber-100 text-amber-700',
+    ringCls: 'ring-amber-200',
   },
   {
     id: 'fazendo_declaracao',
     label: 'Fazendo Declaração',
-    textoCor: 'text-orange-700',
-    bgCor: 'bg-orange-50',
-    borderCor: 'border-orange-200',
-    dotCor: 'bg-orange-400',
+    icon: FileText,
+    accentColor: '#f97316',
+    iconBg: 'bg-orange-100',
+    badgeCls: 'bg-orange-100 text-orange-700',
+    ringCls: 'ring-orange-200',
   },
   {
     id: 'ir_finalizado',
     label: 'IR Finalizado',
-    textoCor: 'text-green-700',
-    bgCor: 'bg-green-50',
-    borderCor: 'border-green-200',
-    dotCor: 'bg-green-400',
+    icon: CheckCircle2,
+    accentColor: '#10b981',
+    iconBg: 'bg-emerald-100',
+    badgeCls: 'bg-emerald-100 text-emerald-700',
+    ringCls: 'ring-emerald-200',
   },
 ]
 
@@ -94,33 +101,74 @@ function calcProgresso(cliente: ClienteKanban) {
   return { total, preenchidas, pct }
 }
 
+function statusDot(pct: number) {
+  if (pct === 100) return 'bg-emerald-400'
+  if (pct >= 50) return 'bg-amber-400'
+  if (pct > 0) return 'bg-orange-400'
+  return 'bg-red-400'
+}
+
+function barGradient(pct: number) {
+  if (pct === 100) return 'linear-gradient(90deg, #34d399, #10b981)'
+  if (pct >= 50) return 'linear-gradient(90deg, #fcd34d, #f59e0b)'
+  return 'linear-gradient(90deg, #fb923c, #f97316)'
+}
+
+function cardStyle(pct: number, temPendencias: boolean) {
+  if (temPendencias) return 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 hover:border-amber-300'
+  if (pct === 100) return 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200 hover:border-emerald-300'
+  return 'bg-white border-gray-200 hover:border-gray-300'
+}
+
 function CardConteudo({ cliente }: { cliente: ClienteKanban }) {
   const { total, preenchidas, pct } = calcProgresso(cliente)
   const categoriasComDocs = cliente.categorias.filter(c => c.documentos.length > 0)
+
   return (
     <>
-      <p className="text-sm font-medium text-gray-900 truncate leading-tight">{cliente.nome}</p>
+      <div className="flex items-center gap-2 mb-2.5">
+        <span className={`w-2 h-2 rounded-full shrink-0 ${statusDot(pct)}`} />
+        <p className="text-sm font-semibold text-gray-800 leading-snug truncate flex-1">
+          {cliente.nome}
+        </p>
+      </div>
+
       {categoriasComDocs.length > 0 && (
-        <div className="mt-1.5 flex flex-wrap gap-1">
-          {categoriasComDocs.map(cat => (
+        <div className="flex flex-wrap gap-1 mb-3">
+          {categoriasComDocs.slice(0, 3).map(cat => (
             <span
               key={cat.id}
-              className={`text-[10px] rounded px-1.5 py-0.5 leading-tight border ${temObservacoes(cat.observacao) ? 'bg-red-50 text-red-700 border-red-200' : 'bg-teal-50 text-teal-700 border-teal-200'}`}
+              className={`text-[10px] rounded-full px-2 py-0.5 font-medium leading-tight ${
+                temObservacoes(cat.observacao)
+                  ? 'bg-red-100 text-red-600'
+                  : 'bg-teal-50 text-teal-700'
+              }`}
             >
               {cat.nome}
             </span>
           ))}
+          {categoriasComDocs.length > 3 && (
+            <span className="text-[10px] rounded-full px-2 py-0.5 font-medium leading-tight bg-gray-100 text-gray-500">
+              +{categoriasComDocs.length - 3}
+            </span>
+          )}
         </div>
       )}
-      <div className="mt-2 space-y-1">
-        <div className="flex justify-between text-xs text-gray-400">
-          <span>{preenchidas}/{total} categorias</span>
-          <span className="font-medium">{pct}%</span>
+
+      <div className="space-y-1.5">
+        <div className="flex justify-between items-center">
+          <span className="text-[11px] text-gray-400">{preenchidas}/{total} categorias</span>
+          <span
+            className="text-[11px] font-bold"
+            style={{ color: pct === 100 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#f97316' }}
+          >
+            {pct}%
+          </span>
         </div>
-        <div className="w-full bg-gray-100 rounded-full h-1">
+        <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
           <div
-            className="h-1 rounded-full transition-all"
-            style={{ width: `${pct}%`, backgroundColor: pct === 100 ? '#22c55e' : '#0d9488' }}
+            className="h-1.5 rounded-full transition-all duration-500"
+            style={{ width: `${pct}%`, background: barGradient(pct) }}
           />
         </div>
       </div>
@@ -129,82 +177,97 @@ function CardConteudo({ cliente }: { cliente: ClienteKanban }) {
 }
 
 function DraggableCard({ cliente }: { cliente: ClienteKanban }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: cliente.id,
-  })
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: cliente.id })
 
   const style = transform
     ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
     : undefined
 
+  const { pct } = calcProgresso(cliente)
+  const temPendencias = cliente.categorias.some(c => temObservacoes(c.observacao))
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-white rounded-lg border border-gray-200 p-3 shadow-sm select-none ${
-        isDragging ? 'opacity-40' : ''
-      }`}
+      className={`group select-none ${isDragging ? 'opacity-40' : ''}`}
     >
-      <div className="flex items-start gap-2">
+      <div
+        className={`relative rounded-xl border shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${cardStyle(pct, temPendencias)}`}
+      >
         <button
           {...listeners}
           {...attributes}
-          className="mt-0.5 text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing shrink-0 touch-none"
+          className="absolute top-2.5 right-2.5 w-5 h-5 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing hover:bg-black/5 z-10"
           aria-label="Arrastar cliente"
         >
-          <GripVertical className="w-4 h-4" />
+          <GripVertical className="w-3.5 h-3.5 text-gray-400" />
         </button>
-        <div className="flex-1 min-w-0">
-          <Link href={`/clientes/${cliente.id}`} className="hover:opacity-75 transition-opacity block">
-            <CardConteudo cliente={cliente} />
-          </Link>
-        </div>
+
+        <Link href={`/clientes/${cliente.id}`} className="block p-4 pr-9">
+          <CardConteudo cliente={cliente} />
+        </Link>
       </div>
     </div>
   )
 }
 
 function OverlayCard({ cliente }: { cliente: ClienteKanban }) {
+  const { pct } = calcProgresso(cliente)
+  const temPendencias = cliente.categorias.some(c => temObservacoes(c.observacao))
+
   return (
-    <div className="bg-white rounded-lg border border-gray-300 p-3 shadow-xl w-52">
-      <div className="flex items-start gap-2">
-        <GripVertical className="w-4 h-4 mt-0.5 text-gray-400 shrink-0" />
-        <div className="flex-1 min-w-0">
-          <CardConteudo cliente={cliente} />
-        </div>
-      </div>
+    <div
+      className={`rounded-xl border shadow-2xl w-64 p-4 rotate-2 scale-105 ${cardStyle(pct, temPendencias)}`}
+    >
+      <CardConteudo cliente={cliente} />
     </div>
   )
 }
 
 function KanbanColuna({ coluna, clientes }: { coluna: Coluna; clientes: ClienteKanban[] }) {
   const { setNodeRef, isOver } = useDroppable({ id: coluna.id })
+  const Icon = coluna.icon
 
   return (
-    <div className="flex-shrink-0 w-52">
-      <div className={`rounded-xl border ${coluna.borderCor} ${coluna.bgCor} flex flex-col`}>
-        <div className="flex items-center gap-2 p-3 pb-2">
-          <span className={`w-2 h-2 rounded-full shrink-0 ${coluna.dotCor}`} />
-          <h3 className={`text-xs font-bold uppercase tracking-wide ${coluna.textoCor} flex-1 leading-tight`}>
-            {coluna.label}
-          </h3>
-          <span className={`text-xs font-bold px-1.5 py-0.5 rounded-md ${coluna.textoCor} border ${coluna.borderCor}`}>
-            {clientes.length}
-          </span>
+    <div className="flex-shrink-0 w-64">
+      {/* Header */}
+      <div className="flex items-center gap-2.5 mb-3 px-0.5">
+        <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${coluna.iconBg} shrink-0`}>
+          <Icon className="w-4 h-4" style={{ color: coluna.accentColor }} />
         </div>
-        <div
-          ref={setNodeRef}
-          className={`min-h-40 space-y-2 p-2 rounded-b-xl transition-colors ${isOver ? 'bg-black/5' : ''}`}
-        >
-          {clientes.map((cliente) => (
-            <DraggableCard key={cliente.id} cliente={cliente} />
-          ))}
-          {clientes.length === 0 && (
-            <div className="flex items-center justify-center h-16">
-              <p className="text-xs text-gray-300 italic">Vazio</p>
-            </div>
-          )}
-        </div>
+        <h3 className="text-sm font-semibold text-gray-700 flex-1 leading-tight truncate">
+          {coluna.label}
+        </h3>
+        <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${coluna.badgeCls}`}>
+          {clientes.length}
+        </span>
+        <button className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors shrink-0">
+          <MoreHorizontal className="w-4 h-4 text-gray-400" />
+        </button>
+      </div>
+
+      {/* Coluna body */}
+      <div
+        ref={setNodeRef}
+        className={`min-h-48 space-y-2.5 p-2.5 rounded-2xl transition-all duration-200 ${
+          isOver
+            ? `bg-gray-100 ring-2 ring-inset ${coluna.ringCls}`
+            : 'bg-gray-50/80'
+        }`}
+      >
+        {clientes.map((cliente) => (
+          <DraggableCard key={cliente.id} cliente={cliente} />
+        ))}
+        {clientes.length === 0 && (
+          <div
+            className={`flex items-center justify-center h-20 rounded-xl border-2 border-dashed transition-colors ${
+              isOver ? 'border-gray-300 bg-gray-50' : 'border-gray-200'
+            }`}
+          >
+            <p className="text-xs text-gray-300 select-none">Arraste aqui</p>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -226,20 +289,15 @@ export function KanbanBoard({ clientesIniciais }: { clientesIniciais: ClienteKan
   async function onDragEnd(event: DragEndEvent) {
     const { active, over } = event
     setAtivo(null)
-
     if (!over) return
-
     const clienteId = active.id as string
     const novoStatus = over.id as string
     const clienteAtual = clientes.find((c) => c.id === clienteId)
-
     if (!clienteAtual || clienteAtual.status === novoStatus) return
     if (!COLUNAS.some((col) => col.id === novoStatus)) return
-
     setClientes((prev) =>
       prev.map((c) => (c.id === clienteId ? { ...c, status: novoStatus } : c))
     )
-
     try {
       await atualizarStatus(clienteId, novoStatus)
     } catch {
@@ -256,7 +314,7 @@ export function KanbanBoard({ clientesIniciais }: { clientesIniciais: ClienteKan
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
     >
-      <div className="flex gap-3 overflow-x-auto pb-6">
+      <div className="flex gap-4 overflow-x-auto pb-6">
         {COLUNAS.map((coluna) => (
           <KanbanColuna
             key={coluna.id}
