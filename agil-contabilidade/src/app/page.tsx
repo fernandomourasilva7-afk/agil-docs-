@@ -72,7 +72,7 @@ const planos = [
     nome: "Free",
     preco: "Grátis",
     periodo: "",
-    limite: "10 clientes",
+    limite: "5 clientes",
     destaque: false,
     features: ["Portal de upload sem login", "8 categorias do IR", "Link único por cliente", "Painel Kanban"],
     cta: "Começar grátis",
@@ -81,9 +81,9 @@ const planos = [
   {
     key: "starter",
     nome: "Starter",
-    preco: "R$79",
+    preco: "R$36,99",
     periodo: "/mês",
-    limite: "50 clientes",
+    limite: "20 clientes",
     destaque: false,
     features: ["Tudo do Free", "Cobrança via PIX", "Download de documentos", "Suporte por e-mail"],
     cta: "Contratar via WhatsApp",
@@ -92,9 +92,9 @@ const planos = [
   {
     key: "profissional",
     nome: "Profissional",
-    preco: "R$199",
+    preco: "R$65",
     periodo: "/mês",
-    limite: "200 clientes",
+    limite: "50 clientes",
     destaque: true,
     features: ["Tudo do Starter", "Múltiplas temporadas", "Relatórios de progresso", "Suporte prioritário"],
     cta: "Contratar via WhatsApp",
@@ -103,7 +103,7 @@ const planos = [
   {
     key: "escritorio",
     nome: "Escritório",
-    preco: "R$399",
+    preco: "R$299",
     periodo: "/mês",
     limite: "Ilimitado",
     destaque: false,
@@ -590,10 +590,10 @@ export default function LandingPage() {
                 </p>
                 <div className="space-y-2.5 flex-1">
                   {[
-                    { nome: "Free", preco: "Grátis", limite: "10 clientes" },
-                    { nome: "Starter", preco: "R$79/mês", limite: "50 clientes" },
-                    { nome: "Profissional", preco: "R$199/mês", limite: "200 clientes" },
-                    { nome: "Escritório", preco: "R$399/mês", limite: "Ilimitado" },
+                    { nome: "Free", preco: "Grátis", limite: "5 clientes" },
+                    { nome: "Starter", preco: "R$36,99/mês", limite: "20 clientes" },
+                    { nome: "Profissional", preco: "R$65/mês", limite: "50 clientes" },
+                    { nome: "Escritório", preco: "R$299/mês", limite: "Ilimitado" },
                   ].map((p) => (
                     <div
                       key={p.nome}
