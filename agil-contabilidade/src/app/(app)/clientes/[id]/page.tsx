@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import CopiarLink from "@/components/CopiarLink";
 import BaixarDocumento from "@/components/BaixarDocumento";
+import VisualizarDocumento from "@/components/VisualizarDocumento";
 import ObservacaoCategoria from "@/components/ObservacaoCategoria";
 import DevolverCliente from "@/components/DevolverCliente";
 import CobrancaIR from "@/components/CobrancaIR";
@@ -177,13 +178,16 @@ export default async function ClienteDetalhePage({ params }: Props) {
               <CardContent className="py-3 px-5">
                 {cat.documentos.length > 0 ? (
                   <ul className="space-y-2">
-                    {cat.documentos.map((doc: { id: string; nome_arquivo: string; storage_path: string; created_at: string }) => (
+                    {cat.documentos.map((doc: { id: string; nome_arquivo: string; storage_path: string; tipo: string; created_at: string }) => (
                       <li key={doc.id} className="flex items-center justify-between gap-2 text-sm">
                         <div className="flex items-center gap-2 min-w-0">
                           <FileText className="w-4 h-4 text-gray-400 shrink-0" />
                           <span className="truncate text-gray-700">{doc.nome_arquivo}</span>
                         </div>
-                        <BaixarDocumento storagePath={doc.storage_path} nomeArquivo={doc.nome_arquivo} />
+                        <div className="flex items-center gap-1 shrink-0">
+                          <VisualizarDocumento storagePath={doc.storage_path} nomeArquivo={doc.nome_arquivo} tipo={doc.tipo ?? ""} />
+                          <BaixarDocumento storagePath={doc.storage_path} nomeArquivo={doc.nome_arquivo} />
+                        </div>
                       </li>
                     ))}
                   </ul>
