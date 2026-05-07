@@ -114,9 +114,9 @@ function barGradient(pct: number) {
   return 'linear-gradient(90deg, #fb923c, #f97316)'
 }
 
-function cardStyle(pct: number, temPendencias: boolean) {
-  if (temPendencias) return 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 hover:border-amber-300'
-  if (pct === 100) return 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200 hover:border-emerald-300'
+function cardStyle(pct: number, temPendencias: boolean, status: string) {
+  if (temPendencias) return 'bg-gradient-to-br from-red-50 to-rose-50 border-red-200 hover:border-red-300'
+  if (status === 'documentos_enviados' || pct === 100) return 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200 hover:border-emerald-300'
   return 'bg-white border-gray-200 hover:border-gray-300'
 }
 
@@ -196,7 +196,7 @@ function DraggableCard({ cliente }: { cliente: ClienteKanban }) {
     >
       <Link href={`/clientes/${cliente.id}`} draggable={false}>
         <div
-          className={`rounded-xl border shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${cardStyle(pct, temPendencias)}`}
+          className={`rounded-xl border shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${cardStyle(pct, temPendencias, cliente.status)}`}
         >
           <div className="p-4">
             <CardConteudo cliente={cliente} />
@@ -213,7 +213,7 @@ function OverlayCard({ cliente }: { cliente: ClienteKanban }) {
 
   return (
     <div
-      className={`rounded-xl border shadow-2xl w-64 p-4 rotate-2 scale-105 ${cardStyle(pct, temPendencias)}`}
+      className={`rounded-xl border shadow-2xl w-64 p-4 rotate-2 scale-105 ${cardStyle(pct, temPendencias, cliente.status)}`}
     >
       <CardConteudo cliente={cliente} />
     </div>

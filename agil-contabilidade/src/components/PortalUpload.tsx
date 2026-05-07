@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { confirmarEnvioCliente } from "@/app/actions/confirmar-envio-cliente";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -105,11 +106,8 @@ export default function PortalUpload({
   async function confirmarEnvio() {
     setConfirmando(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase.rpc("confirmar_envio_cliente", {
-        p_cliente_id: clienteId,
-      });
-      if (error) throw error;
+      const result = await confirmarEnvioCliente(clienteId);
+      if (result.error) throw new Error(result.error);
       setDeclarouEnvio(true);
       toast.success("Envio confirmado! Seu contador já foi avisado.");
     } catch {
