@@ -130,10 +130,10 @@ export default function PortalUpload({
           <Card
             key={cat.id}
             className={`border transition-all ${
-              observacao
-                ? "border-yellow-300 bg-yellow-50/40"
-                : temDocs
+              temDocs
                 ? "border-green-200 bg-green-50/30"
+                : observacao
+                ? "border-yellow-300 bg-yellow-50/40"
                 : "border-gray-200 bg-white"
             }`}
           >
@@ -143,21 +143,20 @@ export default function PortalUpload({
             >
               <CardContent className="py-4 px-5 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  {observacao ? (
-                    <AlertCircle className="w-5 h-5 text-yellow-500 shrink-0" />
-                  ) : temDocs ? (
+                  {temDocs ? (
                     <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+                  ) : observacao ? (
+                    <AlertCircle className="w-5 h-5 text-yellow-500 shrink-0" />
                   ) : (
                     <Clock className="w-5 h-5 text-gray-300 shrink-0" />
                   )}
                   <div className="min-w-0">
                     <p className="font-medium text-gray-800 text-sm">{cat.nome}</p>
-                    {observacao && (
-                      <p className="text-xs text-yellow-700 font-medium">Contador pediu atenção aqui</p>
-                    )}
-                    {!observacao && temDocs && (
+                    {temDocs ? (
                       <p className="text-xs text-green-600">{cat.quantidade} arquivo{cat.quantidade > 1 ? "s" : ""} enviado{cat.quantidade > 1 ? "s" : ""}</p>
-                    )}
+                    ) : observacao ? (
+                      <p className="text-xs text-yellow-700 font-medium">Contador pediu atenção aqui</p>
+                    ) : null}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
