@@ -6,11 +6,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
-  User, Building2, ChevronDown, ChevronUp, FolderOpen,
-  CheckCircle2, Upload, Loader2, FileText, X,
+  User, Building2, FolderOpen,
+  CheckCircle2, Upload, Loader2, FileText, X, ChevronDown,
 } from "lucide-react";
-
-type DocRepositorio = { id: string; nome_arquivo: string };
 
 type CategoriaRepositorio = {
   id: string;
@@ -24,7 +22,7 @@ type Repositorio = {
   categorias: CategoriaRepositorio[];
 };
 
-const TIPO_LABEL = { pf: "Pessoa Física", pj: "Pessoa Jurídica" };
+const TIPO_LABEL = { pf: "Pessoa Física", pj: "CNPJ" };
 const TIPO_ICON = { pf: User, pj: Building2 };
 
 function CategoriaUpload({
@@ -86,16 +84,18 @@ function CategoriaUpload({
   }
 
   return (
-    <div className="rounded-lg border border-gray-100 bg-gray-50/50 p-3 space-y-2">
+    <div className="rounded-lg border border-gray-100 bg-white p-3 space-y-2 shadow-sm">
       <div className="flex items-center gap-2">
         {quantidade > 0 ? (
           <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
         ) : (
           <FolderOpen className="w-4 h-4 text-gray-400 shrink-0" />
         )}
-        <span className="text-sm font-medium text-gray-700">{cat.nome}</span>
+        <span className="text-sm font-medium text-gray-700 flex-1">{cat.nome}</span>
         {quantidade > 0 && (
-          <span className="text-xs text-green-600">{quantidade} arquivo{quantidade > 1 ? "s" : ""}</span>
+          <span className="text-xs font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
+            {quantidade} arq.
+          </span>
         )}
       </div>
 
@@ -111,7 +111,7 @@ function CategoriaUpload({
       {selecionados.length > 0 && (
         <ul className="space-y-1">
           {selecionados.map((f, i) => (
-            <li key={i} className="flex items-center justify-between gap-2 bg-white rounded px-2 py-1 text-xs">
+            <li key={i} className="flex items-center justify-between gap-2 bg-gray-50 rounded px-2 py-1 text-xs">
               <div className="flex items-center gap-1.5 min-w-0">
                 <FileText className="w-3 h-3 text-gray-400 shrink-0" />
                 <span className="truncate text-gray-600">{f.name}</span>
@@ -142,49 +142,59 @@ function CategoriaUpload({
   );
 }
 
-function CardRepositorio({ repo, clienteId }: { repo: Repositorio; clienteId: string }) {
-  const [aberto, setAberto] = useState(false);
+function CardRepositorioSummary({
+  repo,
+  selecionado,
+  onClick,
+}: {
+  repo: Repositorio;
+  selecionado: boolean;
+  onClick: () => void;
+}) {
   const Icon = TIPO_ICON[repo.tipo];
-  const totalEnviados = repo.categorias.filter((c) => c.quantidade > 0).length;
+  const totalEnviados = repo.categorias.reduce((acc, c) => acc + (c.quantidade > 0 ? 1 : 0), 0);
+  const totalCats = repo.categorias.length;
+  const tudo = totalCats > 0 && totalEnviados === totalCats;
 
   return (
-    <Card className="border-gray-200">
-      <button className="w-full text-left" onClick={() => setAberto((p) => !p)}>
-        <CardContent className="py-4 px-5 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center">
-              <Icon className="w-4 h-4 text-teal-600" />
-            </div>
-            <div>
-              <p className="font-semibold text-gray-800 text-sm">{TIPO_LABEL[repo.tipo]}</p>
-              <p className="text-xs text-gray-500">
-                {totalEnviados}/{repo.categorias.length} categorias com documentos
-              </p>
-            </div>
-          </div>
-          {aberto ? (
-            <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" />
-          ) : (
-            <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
-          )}
-        </CardContent>
-      </button>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full text-left rounded-2xl border-2 p-4 transition-all ${
+        selecionado
+          ? "border-teal-400 bg-teal-50 shadow-md"
+          : "border-gray-200 bg-white hover:border-teal-200 hover:shadow-sm"
+      }`}
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+          selecionado ? "bg-teal-100" : "bg-gray-100"
+        }`}>
+          <Icon className={`w-5 h-5 ${selecionado ? "text-teal-600" : "text-gray-500"}`} />
+        </div>
+        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+          tudo
+            ? "bg-green-100 text-green-700"
+            : totalEnviados > 0
+            ? "bg-teal-100 text-teal-700"
+            : "bg-gray-100 text-gray-500"
+        }`}>
+          {tudo ? "Completo" : totalEnviados > 0 ? `+${totalEnviados}` : "Vazio"}
+        </span>
+      </div>
 
-      {aberto && (
-        <div className="border-t border-gray-100 px-5 pb-4 pt-3 space-y-2">
-          {repo.categorias.length === 0 ? (
-            <p className="text-sm text-gray-400 italic">Nenhuma categoria configurada ainda.</p>
-          ) : (
-            repo.categorias.map((cat) => (
-              <CategoriaUpload key={cat.id} cat={cat} clienteId={clienteId} repositorioId={repo.id} />
-            ))
-          )}
-          <p className="text-xs text-gray-400 pt-1">
-            Aceita: PDF, JPG, PNG, HEIC, DOC, DOCX, XLS, XLSX
-          </p>
+      <p className="text-base font-bold text-gray-900">{TIPO_LABEL[repo.tipo]}</p>
+      <p className="text-xs text-gray-500 mt-0.5">
+        {totalEnviados} de {totalCats} {totalCats === 1 ? "categoria" : "categorias"} preenchida{totalCats !== 1 ? "s" : ""}
+      </p>
+
+      {selecionado && (
+        <div className="mt-2 flex items-center gap-1 text-teal-600">
+          <ChevronDown className="w-3.5 h-3.5" />
+          <span className="text-xs font-medium">Ver categorias</span>
         </div>
       )}
-    </Card>
+    </button>
   );
 }
 
@@ -195,7 +205,13 @@ export default function PortalRepositorio({
   clienteId: string;
   repositorios: Repositorio[];
 }) {
+  const [selecionado, setSelecionado] = useState<string | null>(
+    repositorios.length === 1 ? repositorios[0].id : null
+  );
+
   if (repositorios.length === 0) return null;
+
+  const repoAtivo = repositorios.find((r) => r.id === selecionado) ?? null;
 
   return (
     <div className="mt-8 pt-6 border-t border-gray-200">
@@ -205,11 +221,37 @@ export default function PortalRepositorio({
           Envie seus documentos ao longo do ano para facilitar sua declaração.
         </p>
       </div>
-      <div className="space-y-3">
+
+      {/* Cards de seleção */}
+      <div className={`grid gap-3 mb-4 ${repositorios.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
         {repositorios.map((repo) => (
-          <CardRepositorio key={repo.id} repo={repo} clienteId={clienteId} />
+          <CardRepositorioSummary
+            key={repo.id}
+            repo={repo}
+            selecionado={selecionado === repo.id}
+            onClick={() => setSelecionado(selecionado === repo.id ? null : repo.id)}
+          />
         ))}
       </div>
+
+      {/* Categorias do repositório selecionado */}
+      {repoAtivo && (
+        <div className="bg-gray-50 rounded-2xl border border-gray-200 p-4 space-y-2">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            {TIPO_LABEL[repoAtivo.tipo]} — Categorias
+          </p>
+          {repoAtivo.categorias.length === 0 ? (
+            <p className="text-sm text-gray-400 italic">Nenhuma categoria configurada ainda.</p>
+          ) : (
+            repoAtivo.categorias.map((cat) => (
+              <CategoriaUpload key={cat.id} cat={cat} clienteId={clienteId} repositorioId={repoAtivo.id} />
+            ))
+          )}
+          <p className="text-xs text-gray-400 pt-1">
+            Aceita: PDF, JPG, PNG, HEIC, DOC, DOCX, XLS, XLSX
+          </p>
+        </div>
+      )}
     </div>
   );
 }
