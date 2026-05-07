@@ -117,8 +117,26 @@ export default function PortalUpload({
     }
   }
 
+  const preenchidas = categorias.filter((c) => c.quantidade > 0).length;
+  const total = categorias.length;
+  const pct = total > 0 ? Math.round((preenchidas / total) * 100) : 0;
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      <div className="space-y-1.5">
+        <div className="flex justify-between text-sm text-gray-500">
+          <span>{preenchidas} de {total} categorias enviadas</span>
+          <span className="font-semibold text-gray-700">{pct}%</span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div
+            className="h-2.5 rounded-full transition-all duration-500 bg-green-500"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-3">
       {categorias.map((cat) => {
         const temDocs = cat.quantidade > 0;
         const isAberta = aberta === cat.id;
@@ -241,6 +259,8 @@ export default function PortalUpload({
           </Card>
         );
       })}
+
+      </div>
 
       <div className="mt-6 pt-4">
         {declarouEnvio ? (

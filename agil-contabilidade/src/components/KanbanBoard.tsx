@@ -115,8 +115,9 @@ function barGradient(pct: number) {
 }
 
 function cardStyle(pct: number, temPendencias: boolean, status: string) {
+  if (status === 'documentos_enviados') return 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200 hover:border-emerald-300'
   if (temPendencias) return 'bg-gradient-to-br from-red-50 to-rose-50 border-red-200 hover:border-red-300'
-  if (status === 'documentos_enviados' || pct === 100) return 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200 hover:border-emerald-300'
+  if (pct === 100) return 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200 hover:border-emerald-300'
   return 'bg-white border-gray-200 hover:border-gray-300'
 }
 
