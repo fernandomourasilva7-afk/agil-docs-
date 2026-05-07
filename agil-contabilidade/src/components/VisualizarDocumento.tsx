@@ -19,6 +19,24 @@ const OFFICE_TYPES = [
   "application/vnd.ms-excel",
 ];
 
+const EXT_TO_TIPO: Record<string, string> = {
+  pdf: "application/pdf",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  heic: "image/heic",
+  doc: "application/msword",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  xls: "application/vnd.ms-excel",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+};
+
+function resolverTipo(tipo: string, nomeArquivo: string): string {
+  if (tipo) return tipo.toLowerCase();
+  const ext = nomeArquivo.split(".").pop()?.toLowerCase() ?? "";
+  return EXT_TO_TIPO[ext] ?? "";
+}
+
 export default function VisualizarDocumento({
   storagePath,
   nomeArquivo,
@@ -49,9 +67,9 @@ export default function VisualizarDocumento({
   function renderPrevia() {
     if (!url) return null;
 
-    const tipoLower = tipo.toLowerCase();
+    const tipoResolvido = resolverTipo(tipo, nomeArquivo);
 
-    if (tipoLower === "application/pdf") {
+    if (tipoResolvido === "application/pdf") {
       return (
         <iframe
           src={url}
@@ -61,7 +79,7 @@ export default function VisualizarDocumento({
       );
     }
 
-    if (tipoLower.startsWith("image/") && tipoLower !== "image/heic") {
+    if (tipoResolvido.startsWith("image/") && tipoResolvido !== "image/heic") {
       return (
         <div className="flex items-center justify-center bg-gray-50 rounded p-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -74,7 +92,7 @@ export default function VisualizarDocumento({
       );
     }
 
-    if (OFFICE_TYPES.includes(tipoLower)) {
+    if (OFFICE_TYPES.includes(tipoResolvido)) {
       const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`;
       return (
         <iframe
@@ -85,10 +103,13 @@ export default function VisualizarDocumento({
       );
     }
 
+    const isHeic = tipoResolvido === "image/heic";
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-16 text-gray-500">
         <p className="text-sm text-center">
-          Este formato não suporta prévia no navegador.
+          {isHeic
+            ? "Arquivos HEIC (formato de iPhone) não são suportados pelo navegador. Baixe o arquivo para visualizar."
+            : "Este formato não suporta prévia no navegador."}
         </p>
         <a href={url} download={nomeArquivo}>
           <Button variant="outline" size="sm">
