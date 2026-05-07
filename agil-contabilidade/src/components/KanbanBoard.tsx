@@ -95,7 +95,7 @@ function temObservacoes(observacao: string | null): boolean {
 function calcProgresso(cliente: ClienteKanban) {
   const total = cliente.categorias.length
   const preenchidas = cliente.categorias.filter(
-    (c) => c.documentos.length > 0 && !temObservacoes(c.observacao)
+    (c) => c.documentos.length > 0
   ).length
   const pct = total > 0 ? Math.round((preenchidas / total) * 100) : 0
   return { total, preenchidas, pct }
@@ -140,7 +140,7 @@ function CardConteudo({ cliente }: { cliente: ClienteKanban }) {
             <span
               key={cat.id}
               className={`text-[10px] rounded-full px-2 py-0.5 font-medium leading-tight ${
-                temObservacoes(cat.observacao)
+                temObservacoes(cat.observacao) && cat.documentos.length === 0
                   ? 'bg-red-100 text-red-600'
                   : 'bg-teal-50 text-teal-700'
               }`}
