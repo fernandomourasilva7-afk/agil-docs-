@@ -16,6 +16,7 @@ import VisualizarDocumento from "@/components/VisualizarDocumento";
 import ObservacaoCategoria from "@/components/ObservacaoCategoria";
 import DevolverCliente from "@/components/DevolverCliente";
 import CobrancaIR from "@/components/CobrancaIR";
+import GerenciarRepositorio from "@/components/repositorio/GerenciarRepositorio";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -46,6 +47,12 @@ export default async function ClienteDetalhePage({ params }: Props) {
     .select("id, nome_arquivo")
     .eq("cliente_id", id)
     .order("created_at");
+
+  const { data: repositorios } = await supabase
+    .from("repositorios")
+    .select("id, tipo, categorias_repositorio(id, nome, ordem, documentos_repositorio(id, nome_arquivo, storage_path, tipo))")
+    .eq("cliente_id", id)
+    .order("tipo");
 
   const totalCats = categorias?.length ?? 0;
   const preenchidas = categorias?.filter((c) => c.documentos.length > 0).length ?? 0;
@@ -202,6 +209,23 @@ export default async function ClienteDetalhePage({ params }: Props) {
       </div>
 
       {declarouEnvio && <DevolverCliente clienteId={c.id} />}
+
+      {/* Repositório Anual */}
+      <div className="mt-8 pt-8 border-t border-gray-200">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="bg-teal-100 rounded-lg p-1.5">
+            <Receipt className="w-5 h-5 text-teal-700" />
+          </div>
+          <h2 className="text-lg font-bold text-gray-900">Repositório Anual de Documentos</h2>
+        </div>
+        <p className="text-sm text-gray-500 mb-6">
+          Ative PF e/ou PJ para que o cliente envie documentos ao longo do ano via portal.
+        </p>
+        <GerenciarRepositorio
+          clienteId={c.id}
+          repositoriosIniciais={(repositorios ?? []) as Parameters<typeof GerenciarRepositorio>[0]["repositoriosIniciais"]}
+        />
+      </div>
 
       {/* IR Final e Cobrança */}
       <div className="mt-8 pt-8 border-t border-gray-200">

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 import PortalUpload from "@/components/PortalUpload";
+import PortalRepositorio from "@/components/repositorio/PortalRepositorio";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -25,6 +26,12 @@ export default async function PortalClientePage({ params }: Props) {
     .select("id, nome, ordem, observacao, documentos(id)")
     .eq("cliente_id", cliente.id)
     .order("ordem");
+
+  const { data: repositorios } = await supabase
+    .from("repositorios")
+    .select("id, tipo, categorias_repositorio(id, nome, ordem, documentos_repositorio(id))")
+    .eq("cliente_id", cliente.id)
+    .order("tipo");
 
   const totalCats = categorias?.length ?? 0;
   const preenchidas = categorias?.filter((c) => c.documentos.length > 0).length ?? 0;
@@ -74,6 +81,19 @@ export default async function PortalClientePage({ params }: Props) {
             nome: c.nome,
             quantidade: c.documentos.length,
           })) ?? []}
+        />
+
+        <PortalRepositorio
+          clienteId={cliente.id}
+          repositorios={(repositorios ?? []).map((r) => ({
+            id: r.id,
+            tipo: r.tipo as "pf" | "pj",
+            categorias: r.categorias_repositorio.map((c) => ({
+              id: c.id,
+              nome: c.nome,
+              quantidade: c.documentos_repositorio.length,
+            })),
+          }))}
         />
 
         <p className="text-center text-xs text-gray-400 mt-8">
