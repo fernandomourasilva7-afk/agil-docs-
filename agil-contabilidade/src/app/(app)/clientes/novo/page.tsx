@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, UserPlus, CheckCircle2, MessageCircle, ExternalLink, UserPlus2, Plus, X } from "lucide-react";
+import { Loader2, UserPlus, CheckCircle2, MessageCircle, ExternalLink, UserPlus2, Plus, X, User, Building2 } from "lucide-react";
 import Link from "next/link";
 
 const CATEGORIAS_LISTA = [
@@ -77,6 +77,8 @@ export default function NovoClientePage() {
   );
   const [customCats, setCustomCats] = useState<string[]>([]);
   const [novaCategoria, setNovaCategoria] = useState("");
+  const [ativarPF, setAtivarPF] = useState(false);
+  const [ativarPJ, setAtivarPJ] = useState(false);
 
   const router = useRouter();
 
@@ -215,6 +217,14 @@ export default function NovoClientePage() {
       return;
     }
 
+    if (ativarPF || ativarPJ) {
+      const repos = [
+        ...(ativarPF ? [{ cliente_id: cliente.id, tipo: "pf" }] : []),
+        ...(ativarPJ ? [{ cliente_id: cliente.id, tipo: "pj" }] : []),
+      ];
+      await supabase.from("repositorios").insert(repos);
+    }
+
     setClienteCriado({ id: cliente.id, slug: cliente.slug, nome: nome.trim(), telefone, totalCategorias: totalSelecionadas });
     setCarregando(false);
   }
@@ -274,6 +284,8 @@ export default function NovoClientePage() {
                     setHonorario("");
                     setSelecionadas(new Set(CATEGORIAS_LISTA.filter((c) => c.padrao).map((c) => c.nome)));
                     setCustomCats([]);
+                    setAtivarPF(false);
+                    setAtivarPJ(false);
                   }}
                   className="w-full text-sm text-gray-400 hover:text-gray-600 flex items-center justify-center gap-1.5 py-2"
                 >
@@ -378,6 +390,37 @@ export default function NovoClientePage() {
                 <p className="text-xs text-gray-400">
                   Valor cobrado pela declaração. Usado nas métricas de receita.
                 </p>
+              </div>
+
+              {/* Repositório Anual */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Repositório Anual <span className="text-gray-400 font-normal">(opcional)</span></Label>
+                </div>
+                <p className="text-xs text-gray-400">
+                  Ative para o cliente enviar documentos ao longo do ano, separados por tipo de declaração.
+                </p>
+                <div className="flex gap-3 flex-wrap">
+                  {[
+                    { tipo: "pf" as const, label: "Pessoa Física", ativo: ativarPF, set: setAtivarPF, Icon: User },
+                    { tipo: "pj" as const, label: "Pessoa Jurídica", ativo: ativarPJ, set: setAtivarPJ, Icon: Building2 },
+                  ].map(({ label, ativo, set, Icon }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => set(!ativo)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 text-sm font-medium transition-all ${
+                        ativo
+                          ? "border-teal-400 bg-teal-50 text-teal-700"
+                          : "border-gray-200 bg-white text-gray-400 hover:border-gray-300"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      {label}
+                      {ativo && <span className="text-xs bg-teal-200 text-teal-800 px-1.5 py-0.5 rounded-full">Ativo</span>}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Seleção de categorias */}
