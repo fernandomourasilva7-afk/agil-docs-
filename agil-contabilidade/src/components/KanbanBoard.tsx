@@ -291,6 +291,8 @@ export function KanbanBoard({ clientesIniciais }: { clientesIniciais: ClienteKan
     const clienteAtual = clientes.find((c) => c.id === clienteId)
     if (!clienteAtual || clienteAtual.status === novoStatus) return
     if (!COLUNAS.some((col) => col.id === novoStatus)) return
+    const temDocs = clienteAtual.categorias.some((c) => c.documentos.length > 0)
+    if (!temDocs && novoStatus !== 'link_enviado') return
     setClientes((prev) =>
       prev.map((c) => (c.id === clienteId ? { ...c, status: novoStatus } : c))
     )

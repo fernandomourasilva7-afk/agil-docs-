@@ -22,10 +22,12 @@ export default async function DashboardPage() {
     supabase.from("contadores").select("plano").eq("id", user.id).single(),
   ]);
 
-  const clientesNormalizados = (clientes ?? []).map((c) => ({
-    ...c,
-    status: (c as { status?: string | null }).status ?? "link_enviado",
-  }));
+  const clientesNormalizados = (clientes ?? []).map((c) => {
+    const status = (c as { status?: string | null }).status ?? "link_enviado";
+    const temDocs = c.categorias.some((cat) => cat.documentos.length > 0);
+    const statusFinal = !temDocs && status !== "link_enviado" ? "link_enviado" : status;
+    return { ...c, status: statusFinal };
+  });
 
   const planoAtual = ((contadorData?.plano) ?? "free") as PlanoKey;
   const infoPlano = PLANOS[planoAtual];
