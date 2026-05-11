@@ -17,6 +17,7 @@ import ObservacaoCategoria from "@/components/ObservacaoCategoria";
 import DevolverCliente from "@/components/DevolverCliente";
 import CobrancaIR from "@/components/CobrancaIR";
 import GerenciarRepositorio from "@/components/repositorio/GerenciarRepositorio";
+import DeletarCliente from "@/components/DeletarCliente";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -261,6 +262,12 @@ export default async function ClienteDetalhePage({ params }: Props) {
           pagamentoConfirmado={c.pagamento_confirmado ?? false}
           appUrl={appUrl}
         />
+      </div>
+
+      {/* Zona de risco */}
+      <div className="mt-8 pt-6 border-t border-gray-200">
+        <p className="text-xs text-gray-400 mb-3">Zona de risco</p>
+        <DeletarCliente clienteId={c.id} clienteNome={c.nome} />
       </div>
     </div>
   );
