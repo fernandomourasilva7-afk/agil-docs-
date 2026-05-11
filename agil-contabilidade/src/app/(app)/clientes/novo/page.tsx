@@ -218,8 +218,14 @@ export default function NovoClientePage() {
       return;
     }
 
-    if (ativarPF) await ativarRepositorio(cliente.id, "pf", true);
-    if (ativarPJ) await ativarRepositorio(cliente.id, "pj", true);
+    if (ativarPF) {
+      const r = await ativarRepositorio(cliente.id, "pf", true);
+      if (r.error) toast.error("Erro ao ativar repositório PF.");
+    }
+    if (ativarPJ) {
+      const r = await ativarRepositorio(cliente.id, "pj", true);
+      if (r.error) toast.error("Erro ao ativar repositório CNPJ.");
+    }
 
     setClienteCriado({ id: cliente.id, slug: cliente.slug, nome: nome.trim(), telefone, totalCategorias: totalSelecionadas });
     setCarregando(false);
