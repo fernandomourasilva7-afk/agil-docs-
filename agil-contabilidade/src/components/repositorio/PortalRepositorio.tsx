@@ -5,8 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
-  User, Building2, FolderOpen,
-  CheckCircle2, Upload, Loader2, FileText, X,
+  FolderOpen, CheckCircle2, Upload, Loader2, FileText, X, ChevronDown,
 } from "lucide-react";
 
 type CategoriaRepositorio = {
@@ -21,19 +20,9 @@ type Repositorio = {
   categorias: CategoriaRepositorio[];
 };
 
-const TIPO_LABEL = { pf: "Pessoa Física", pj: "CNPJ" };
-const TIPO_ICON = { pf: User, pj: Building2 };
 const TIPO_COLOR = {
-  pf: {
-    header: "bg-teal-600",
-    badge: "bg-teal-500",
-    btn: "bg-teal-600 hover:bg-teal-700",
-  },
-  pj: {
-    header: "bg-slate-700",
-    badge: "bg-slate-600",
-    btn: "bg-slate-700 hover:bg-slate-800",
-  },
+  pf: { btn: "bg-teal-600 hover:bg-teal-700" },
+  pj: { btn: "bg-slate-700 hover:bg-slate-800" },
 };
 
 function CategoriaUpload({
@@ -190,6 +179,7 @@ function CardRepositorio({
   repo: Repositorio;
   clienteId: string;
 }) {
+  const [aberto, setAberto] = useState(false);
   const cores = TIPO_COLOR[repo.tipo];
   const label = repo.tipo === "pf" ? "CPF" : "CNPJ";
   const totalEnviados = repo.categorias.reduce(
@@ -201,38 +191,48 @@ function CardRepositorio({
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-      {/* Header estilo mockup */}
-      <div className="flex items-start justify-between px-5 pt-5 pb-4">
+      {/* Header clicável */}
+      <button
+        onClick={() => setAberto(!aberto)}
+        className="w-full flex items-center justify-between px-5 py-5 text-left"
+      >
         <div>
           <p className="text-gray-400 text-sm font-medium">declaração</p>
           <p className="text-4xl font-bold text-gray-900 mt-1">{label}</p>
         </div>
-        <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-bold mt-1">
-          +{pct}%
-        </span>
-      </div>
+        <div className="flex flex-col items-end gap-3">
+          <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-bold">
+            +{pct}%
+          </span>
+          <ChevronDown
+            className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${aberto ? "rotate-180" : ""}`}
+          />
+        </div>
+      </button>
 
-      {/* Sub-categorias */}
-      <div className="border-t border-gray-100 px-4 pt-3 pb-4 space-y-2">
-        {repo.categorias.length === 0 ? (
-          <p className="text-sm text-gray-400 italic text-center py-4">
-            Nenhuma categoria configurada.
+      {/* Sub-categorias — só quando aberto */}
+      {aberto && (
+        <div className="border-t border-gray-100 px-4 pt-3 pb-4 space-y-2">
+          {repo.categorias.length === 0 ? (
+            <p className="text-sm text-gray-400 italic text-center py-4">
+              Nenhuma categoria configurada.
+            </p>
+          ) : (
+            repo.categorias.map((cat) => (
+              <CategoriaUpload
+                key={cat.id}
+                cat={cat}
+                clienteId={clienteId}
+                repositorioId={repo.id}
+                corBtn={cores.btn}
+              />
+            ))
+          )}
+          <p className="text-xs text-gray-400 pt-1">
+            Aceita: PDF, JPG, PNG, HEIC, DOC, DOCX, XLS, XLSX
           </p>
-        ) : (
-          repo.categorias.map((cat) => (
-            <CategoriaUpload
-              key={cat.id}
-              cat={cat}
-              clienteId={clienteId}
-              repositorioId={repo.id}
-              corBtn={cores.btn}
-            />
-          ))
-        )}
-        <p className="text-xs text-gray-400 pt-1">
-          Aceita: PDF, JPG, PNG, HEIC, DOC, DOCX, XLS, XLSX
-        </p>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
