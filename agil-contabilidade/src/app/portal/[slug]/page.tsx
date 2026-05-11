@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import Image from "next/image";
@@ -27,7 +28,8 @@ export default async function PortalClientePage({ params }: Props) {
     .eq("cliente_id", cliente.id)
     .order("ordem");
 
-  const { data: repositorios } = await supabase
+  const admin = createAdminClient();
+  const { data: repositorios } = await admin
     .from("repositorios")
     .select("id, tipo, categorias_repositorio(id, nome, ordem, documentos_repositorio(id))")
     .eq("cliente_id", cliente.id)
