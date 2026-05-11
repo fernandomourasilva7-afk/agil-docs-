@@ -165,6 +165,7 @@ export default async function ClienteDetalhePage({ params }: Props) {
         {categorias?.map((cat) => {
           const temDocs = cat.documentos.length > 0;
           const observacao = (cat as { observacao?: string | null }).observacao ?? null;
+          const mensagemCliente = (cat as { mensagem_cliente?: string | null }).mensagem_cliente ?? null;
           return (
             <Card key={cat.id} className={`border ${temDocs ? "border-green-200" : "border-gray-200"}`}>
               <CardHeader className="py-3 px-5 pb-0">
@@ -201,6 +202,12 @@ export default async function ClienteDetalhePage({ params }: Props) {
                   </ul>
                 ) : (
                   <p className="text-sm text-gray-400 italic">Nenhum documento enviado ainda.</p>
+                )}
+                {mensagemCliente && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mt-3 mb-1">
+                    <p className="text-xs font-semibold text-blue-700 mb-0.5">Mensagem do cliente:</p>
+                    <p className="text-sm text-blue-800">{mensagemCliente}</p>
+                  </div>
                 )}
                 <ObservacaoCategoria catId={cat.id} observacaoAtual={observacao} />
               </CardContent>

@@ -24,7 +24,7 @@ export default async function PortalClientePage({ params }: Props) {
 
   const { data: categorias } = await supabase
     .from("categorias")
-    .select("id, nome, ordem, observacao, documentos(id)")
+    .select("id, nome, ordem, observacao, mensagem_cliente, documentos(id)")
     .eq("cliente_id", cliente.id)
     .order("ordem");
 
@@ -50,9 +50,12 @@ export default async function PortalClientePage({ params }: Props) {
     : 0;
 
   const observacoes: Record<string, string> = {};
+  const mensagensCliente: Record<string, string> = {};
   categorias?.forEach((c) => {
     const obs = (c as { observacao?: string | null }).observacao;
     if (obs) observacoes[c.id] = obs;
+    const msg = (c as { mensagem_cliente?: string | null }).mensagem_cliente;
+    if (msg) mensagensCliente[c.id] = msg;
   });
 
   const categoriasParaUpload = categorias?.map((c) => ({
@@ -94,6 +97,8 @@ export default async function PortalClientePage({ params }: Props) {
                   declarouEnvio={declarouEnvio}
                   observacoes={observacoes}
                   categorias={categoriasParaUpload}
+                  mensagensIniciais={mensagensCliente}
+                  clienteSlug={slug}
                 />
               </div>
             </CardDeclaracaoPortal>

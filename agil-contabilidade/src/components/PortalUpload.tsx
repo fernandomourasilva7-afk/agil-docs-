@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { confirmarEnvioCliente } from "@/app/actions/confirmar-envio-cliente";
+import { salvarMensagemCliente } from "@/app/actions/salvar-mensagem-cliente";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,11 +20,15 @@ export default function PortalUpload({
   categorias: catInicial,
   declarouEnvio: declarouEnvioInicial,
   observacoes,
+  mensagensIniciais,
+  clienteSlug,
 }: {
   clienteId: string;
   categorias: Categoria[];
   declarouEnvio: boolean;
   observacoes: Record<string, string>;
+  mensagensIniciais: Record<string, string>;
+  clienteSlug: string;
 }) {
   const [categorias, setCategorias] = useState(catInicial);
   const [aberta, setAberta] = useState<string | null>(null);
@@ -31,6 +36,8 @@ export default function PortalUpload({
   const [arquivosSelecionados, setArquivosSelecionados] = useState<Record<string, File[]>>({});
   const [declarouEnvio, setDeclarouEnvio] = useState(declarouEnvioInicial);
   const [confirmando, setConfirmando] = useState(false);
+  const [mensagens, setMensagens] = useState<Record<string, string>>(mensagensIniciais);
+  const [enviandoMsg, setEnviandoMsg] = useState<string | null>(null);
   const inputRefs = useRef<Record<string, HTMLInputElement>>({});
 
   function toggleCategoria(id: string) {
@@ -101,6 +108,16 @@ export default function PortalUpload({
     setArquivosSelecionados((prev) => ({ ...prev, [catId]: [] }));
     toast.success(`${arquivos.length} arquivo${arquivos.length > 1 ? "s" : ""} enviado${arquivos.length > 1 ? "s" : ""}!`);
     setEnviando(null);
+  }
+
+  async function enviarMensagem(catId: string) {
+    const texto = mensagens[catId]?.trim();
+    if (!texto) return;
+    setEnviandoMsg(catId);
+    const r = await salvarMensagemCliente(catId, texto, clienteSlug);
+    if (r.error) toast.error("Erro ao enviar mensagem.");
+    else toast.success("Mensagem enviada!");
+    setEnviandoMsg(null);
   }
 
   async function confirmarEnvio() {
@@ -198,6 +215,35 @@ export default function PortalUpload({
                     <p className="text-sm text-yellow-800">{observacao}</p>
                   </div>
                 )}
+
+                <div className="mb-3">
+                  <p className="text-xs font-medium text-gray-500 mb-1">Deixar mensagem para o contador:</p>
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      placeholder="Digite sua mensagem..."
+                      value={mensagens[cat.id] ?? ""}
+                      onChange={(e) => setMensagens((prev) => ({ ...prev, [cat.id]: e.target.value }))}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); enviarMensagem(cat.id); } }}
+                      className="flex-1 text-sm border border-gray-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-teal-400"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => enviarMensagem(cat.id)}
+                      disabled={enviandoMsg === cat.id || !mensagens[cat.id]?.trim()}
+                    >
+                      {enviandoMsg === cat.id
+                        ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        : <SendHorizonal className="w-3.5 h-3.5" />}
+                      Enviar
+                    </Button>
+                  </div>
+                  {mensagensIniciais[cat.id] && (
+                    <p className="text-xs text-teal-700 mt-1">✓ Mensagem enviada anteriormente: &quot;{mensagensIniciais[cat.id]}&quot;</p>
+                  )}
+                </div>
 
                 <input
                   ref={(el) => { if (el) inputRefs.current[cat.id] = el; }}
