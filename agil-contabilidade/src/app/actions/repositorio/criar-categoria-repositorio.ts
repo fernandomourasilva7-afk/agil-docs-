@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 export async function criarCategoriaRepositorio(
@@ -12,7 +13,9 @@ export async function criarCategoriaRepositorio(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Não autenticado' }
 
-  const { data: repo } = await supabase
+  const admin = createAdminClient()
+
+  const { data: repo } = await admin
     .from('repositorios')
     .select('id, clientes!inner(contador_id)')
     .eq('id', repositorioId)
@@ -22,7 +25,7 @@ export async function criarCategoriaRepositorio(
   const clientes = repo.clientes as unknown as { contador_id: string }
   if (clientes.contador_id !== user.id) return { error: 'Sem permissão' }
 
-  const { data: maxOrdem } = await supabase
+  const { data: maxOrdem } = await admin
     .from('categorias_repositorio')
     .select('ordem')
     .eq('repositorio_id', repositorioId)
@@ -32,7 +35,7 @@ export async function criarCategoriaRepositorio(
 
   const ordem = (maxOrdem?.ordem ?? -1) + 1
 
-  const { data, error } = await supabase
+  const { data, error } = await admin
     .from('categorias_repositorio')
     .insert({ repositorio_id: repositorioId, nome: nome.trim(), ordem })
     .select('id')

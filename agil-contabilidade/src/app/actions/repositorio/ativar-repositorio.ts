@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 export async function ativarRepositorio(
@@ -21,8 +22,10 @@ export async function ativarRepositorio(
 
   if (!cliente) return { error: 'Cliente não encontrado' }
 
+  const admin = createAdminClient()
+
   if (ativo) {
-    const { data, error } = await supabase
+    const { data, error } = await admin
       .from('repositorios')
       .upsert({ cliente_id: clienteId, tipo }, { onConflict: 'cliente_id,tipo' })
       .select('id')
@@ -31,7 +34,7 @@ export async function ativarRepositorio(
     revalidatePath(`/clientes/${clienteId}`)
     return { id: data.id }
   } else {
-    const { error } = await supabase
+    const { error } = await admin
       .from('repositorios')
       .delete()
       .eq('cliente_id', clienteId)
