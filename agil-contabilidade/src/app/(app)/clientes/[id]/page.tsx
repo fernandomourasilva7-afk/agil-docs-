@@ -59,6 +59,17 @@ export default async function ClienteDetalhePage({ params }: Props) {
   const pct = totalCats > 0 ? Math.round((preenchidas / totalCats) * 100) : 0;
   const declarouEnvio = (cliente as { declarou_envio?: boolean }).declarou_envio ?? false;
 
+  const repoPF = repositorios?.find((r) => r.tipo === "pf") ?? null;
+  const repoPJ = repositorios?.find((r) => r.tipo === "pj") ?? null;
+  const catsPF = repoPF?.categorias_repositorio ?? [];
+  const catsPJ = repoPJ?.categorias_repositorio ?? [];
+  const pctPF = catsPF.length > 0
+    ? Math.round((catsPF.filter((c) => c.documentos_repositorio.length > 0).length / catsPF.length) * 100)
+    : 0;
+  const pctPJ = catsPJ.length > 0
+    ? Math.round((catsPJ.filter((c) => c.documentos_repositorio.length > 0).length / catsPJ.length) * 100)
+    : 0;
+
   const c = cliente as {
     id: string; nome: string; telefone?: string; email?: string; slug: string;
     pix_chave?: string | null; pix_tipo?: string | null; pix_nome?: string | null;
@@ -218,9 +229,41 @@ export default async function ClienteDetalhePage({ params }: Props) {
           </div>
           <h2 className="text-lg font-bold text-gray-900">Repositório Anual de Documentos</h2>
         </div>
-        <p className="text-sm text-gray-500 mb-6">
+        <p className="text-sm text-gray-500 mb-4">
           Ative PF e/ou PJ para que o cliente envie documentos ao longo do ano via portal.
         </p>
+
+        {/* Cards de declaração */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          {(["pf", "pj"] as const).map((tipo) => {
+            const repo = tipo === "pf" ? repoPF : repoPJ;
+            const pctRepo = tipo === "pf" ? pctPF : pctPJ;
+            const label = tipo === "pf" ? "CPF" : "CNPJ";
+            if (!repo) {
+              return (
+                <div key={tipo} className="rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/60 p-6">
+                  <p className="text-gray-400 text-sm">declaração</p>
+                  <p className="text-3xl font-bold text-gray-300 mt-0.5">{label}</p>
+                  <p className="text-xs text-gray-400 mt-3">Repositório inativo</p>
+                </div>
+              );
+            }
+            return (
+              <a key={tipo} href={`/portal/${c.slug}`} target="_blank" rel="noopener noreferrer" className="block group">
+                <div className="bg-white rounded-2xl border border-gray-200 p-6 group-hover:border-teal-300 group-hover:shadow-md transition-all">
+                  <p className="text-gray-400 text-sm">declaração</p>
+                  <p className="text-3xl font-bold text-gray-900 mt-0.5">{label}</p>
+                  <div className="mt-3">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-sm font-semibold">
+                      +{pctRepo}%
+                    </span>
+                  </div>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+
         <GerenciarRepositorio
           clienteId={c.id}
           repositoriosIniciais={(repositorios ?? []) as Parameters<typeof GerenciarRepositorio>[0]["repositoriosIniciais"]}
