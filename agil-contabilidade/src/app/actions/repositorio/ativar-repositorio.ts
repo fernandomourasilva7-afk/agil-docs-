@@ -25,11 +25,24 @@ export async function ativarRepositorio(
   const admin = createAdminClient()
 
   if (ativo) {
+    const { data: existing } = await admin
+      .from('repositorios')
+      .select('id')
+      .eq('cliente_id', clienteId)
+      .eq('tipo', tipo)
+      .maybeSingle()
+
+    if (existing) {
+      revalidatePath(`/clientes/${clienteId}`)
+      return { id: existing.id }
+    }
+
     const { data, error } = await admin
       .from('repositorios')
-      .upsert({ cliente_id: clienteId, tipo }, { onConflict: 'cliente_id,tipo' })
+      .insert({ cliente_id: clienteId, tipo })
       .select('id')
       .single()
+
     if (error || !data) return { error: 'Erro ao ativar repositório' }
     revalidatePath(`/clientes/${clienteId}`)
     return { id: data.id }
