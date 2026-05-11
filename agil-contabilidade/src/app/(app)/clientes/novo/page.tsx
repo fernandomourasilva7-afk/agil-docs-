@@ -223,14 +223,14 @@ export default function NovoClientePage() {
     // Activate PF repository
     if (ativarPF) {
       const r = await ativarRepositorio(cliente.id, "pf", true);
-      if (r.error) toast.error(`PF: ${r.error}`);
+      if (r.error) toast.error("Erro ao ativar repositório PF.");
     }
 
     // Activate PJ repository + create PJ categories
     if (ativarPJ) {
       const r = await ativarRepositorio(cliente.id, "pj", true);
       if (r.error) {
-        toast.error(`CNPJ: ${r.error}`);
+        toast.error("Erro ao ativar repositório CNPJ.");
       } else if (r.id) {
         const pjCats = [...selecionadasPJ, ...customCatsPJ];
         for (const catNome of pjCats) {

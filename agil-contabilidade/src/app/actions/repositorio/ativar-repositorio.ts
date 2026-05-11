@@ -20,7 +20,7 @@ export async function ativarRepositorio(
     .eq('contador_id', user.id)
     .single()
 
-  if (!cliente) return { error: `Cliente não encontrado no banco (uid: ${user.id})` }
+  if (!cliente) return { error: 'Cliente não encontrado' }
 
   const admin = createAdminClient()
 
@@ -43,7 +43,7 @@ export async function ativarRepositorio(
       .select('id')
       .single()
 
-    if (error || !data) return { error: error?.message ?? 'Insert sem retorno de dados' }
+    if (error || !data) return { error: 'Erro ao ativar repositório' }
     revalidatePath(`/clientes/${clienteId}`)
     return { id: data.id }
   } else {
