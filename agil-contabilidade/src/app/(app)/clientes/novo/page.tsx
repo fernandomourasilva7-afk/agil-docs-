@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { toast } from "sonner";
 import { Loader2, UserPlus, CheckCircle2, MessageCircle, ExternalLink, UserPlus2, Plus, X, User, Building2 } from "lucide-react";
 import Link from "next/link";
+import { ativarRepositorio } from "@/app/actions/repositorio/ativar-repositorio";
 
 const CATEGORIAS_LISTA = [
   { nome: "Documentos Pessoais",                  padrao: true  },
@@ -217,13 +218,8 @@ export default function NovoClientePage() {
       return;
     }
 
-    if (ativarPF || ativarPJ) {
-      const repos = [
-        ...(ativarPF ? [{ cliente_id: cliente.id, tipo: "pf" }] : []),
-        ...(ativarPJ ? [{ cliente_id: cliente.id, tipo: "pj" }] : []),
-      ];
-      await supabase.from("repositorios").insert(repos);
-    }
+    if (ativarPF) await ativarRepositorio(cliente.id, "pf", true);
+    if (ativarPJ) await ativarRepositorio(cliente.id, "pj", true);
 
     setClienteCriado({ id: cliente.id, slug: cliente.slug, nome: nome.trim(), telefone, totalCategorias: totalSelecionadas });
     setCarregando(false);
