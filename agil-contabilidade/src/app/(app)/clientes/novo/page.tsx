@@ -38,6 +38,16 @@ const CATEGORIAS_LISTA = [
 
 const DEFAULT_PADRAO = new Set(CATEGORIAS_LISTA.filter((c) => c.padrao).map((c) => c.nome));
 
+const CATEGORIAS_PJ_LISTA = [
+  { nome: "Documentos básicos da empresa", padrao: true  },
+  { nome: "Documentos contábeis",          padrao: true  },
+  { nome: "Documentos fiscais",            padrao: true  },
+  { nome: "Documentos bancários",          padrao: true  },
+  { nome: "Folha de pagamento",            padrao: false },
+];
+
+const DEFAULT_PADRAO_PJ = new Set(CATEGORIAS_PJ_LISTA.filter((c) => c.padrao).map((c) => c.nome));
+
 function gerarSlug(nome: string): string {
   return nome
     .toLowerCase()
@@ -84,7 +94,7 @@ export default function NovoClientePage() {
 
   // Pessoa Jurídica — categorias do repositório (tabela categorias_repositorio)
   const [ativarPJ, setAtivarPJ] = useState(false);
-  const [selecionadasPJ, setSelecionadasPJ] = useState<Set<string>>(() => new Set(DEFAULT_PADRAO));
+  const [selecionadasPJ, setSelecionadasPJ] = useState<Set<string>>(() => new Set(DEFAULT_PADRAO_PJ));
   const [customCatsPJ, setCustomCatsPJ] = useState<string[]>([]);
   const [novaCategoriaPJ, setNovaCategoriaPJ] = useState("");
 
@@ -119,12 +129,12 @@ export default function NovoClientePage() {
       return next;
     });
   }
-  function marcarTodasPJ() { setSelecionadasPJ(new Set(CATEGORIAS_LISTA.map((c) => c.nome))); }
+  function marcarTodasPJ() { setSelecionadasPJ(new Set(CATEGORIAS_PJ_LISTA.map((c) => c.nome))); }
   function desmarcarTodasPJ() { setSelecionadasPJ(new Set()); }
   function adicionarCustomPJ() {
     const n = novaCategoriaPJ.trim();
     if (!n) return;
-    if (CATEGORIAS_LISTA.some((c) => c.nome.toLowerCase() === n.toLowerCase()) || customCatsPJ.includes(n)) {
+    if (CATEGORIAS_PJ_LISTA.some((c) => c.nome.toLowerCase() === n.toLowerCase()) || customCatsPJ.includes(n)) {
       toast.error("Categoria já existe."); return;
     }
     setCustomCatsPJ((prev) => [...prev, n]);
@@ -295,7 +305,7 @@ export default function NovoClientePage() {
                     setNome(""); setTelefone(""); setEmail(""); setHonorario("");
                     setAtivarPF(true); setAtivarPJ(false);
                     setSelecionadas(new Set(DEFAULT_PADRAO)); setCustomCats([]); setNovaCategoria("");
-                    setSelecionadasPJ(new Set(DEFAULT_PADRAO)); setCustomCatsPJ([]); setNovaCategoriaPJ("");
+                    setSelecionadasPJ(new Set(DEFAULT_PADRAO_PJ)); setCustomCatsPJ([]); setNovaCategoriaPJ("");
                   }}
                   className="w-full text-sm text-gray-400 hover:text-gray-600 flex items-center justify-center gap-1.5 py-2"
                 >
@@ -484,7 +494,7 @@ export default function NovoClientePage() {
                             </div>
                           )}
                           <div className="border border-gray-200 rounded-lg divide-y divide-gray-100 max-h-52 overflow-y-auto">
-                            {CATEGORIAS_LISTA.map((cat) => (
+                            {CATEGORIAS_PJ_LISTA.map((cat) => (
                               <label key={cat.nome} className="flex items-center gap-2.5 px-2.5 py-2 cursor-pointer hover:bg-gray-50 transition-colors">
                                 <input type="checkbox" checked={selecionadasPJ.has(cat.nome)} onChange={() => toggleCategoriaPJ(cat.nome)} className="w-4 h-4 accent-slate-600 shrink-0" />
                                 <span className={`text-sm text-gray-700 ${amboAtivos ? "text-xs" : ""}`}>{cat.nome}</span>
