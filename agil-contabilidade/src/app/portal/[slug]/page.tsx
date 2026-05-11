@@ -3,10 +3,10 @@ export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
-import { CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 import PortalUpload from "@/components/PortalUpload";
-import PortalRepositorio from "@/components/repositorio/PortalRepositorio";
+import CardDeclaracaoPortal from "@/components/CardDeclaracaoPortal";
+import { CategoriasRepoSemCard } from "@/components/repositorio/PortalRepositorio";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -35,17 +35,37 @@ export default async function PortalClientePage({ params }: Props) {
     .eq("cliente_id", cliente.id)
     .order("tipo");
 
+  const declarouEnvio = (cliente as { declarou_envio?: boolean }).declarou_envio ?? false;
+
+  // Progresso CPF (categorias principais do IR)
   const totalCats = categorias?.length ?? 0;
   const preenchidas = categorias?.filter((c) => c.documentos.length > 0).length ?? 0;
-  const tudo_enviado = preenchidas === totalCats && totalCats > 0;
-  const declarouEnvio = (cliente as { declarou_envio?: boolean }).declarou_envio ?? false;
-  const pct = totalCats > 0 ? Math.round((preenchidas / totalCats) * 100) : 0;
+  const pctCPF = totalCats > 0 ? Math.round((preenchidas / totalCats) * 100) : 0;
+
+  // Repositório PJ para o card CNPJ
+  const repoPJ = (repositorios ?? []).find((r) => r.tipo === "pj") ?? null;
+  const catsPJ = repoPJ?.categorias_repositorio ?? [];
+  const pctCNPJ = catsPJ.length > 0
+    ? Math.round(catsPJ.filter((c) => c.documentos_repositorio.length > 0).length / catsPJ.length * 100)
+    : 0;
 
   const observacoes: Record<string, string> = {};
   categorias?.forEach((c) => {
     const obs = (c as { observacao?: string | null }).observacao;
     if (obs) observacoes[c.id] = obs;
   });
+
+  const categoriasParaUpload = categorias?.map((c) => ({
+    id: c.id,
+    nome: c.nome,
+    quantidade: c.documentos.length,
+  })) ?? [];
+
+  const categoriasPJ = catsPJ.map((c) => ({
+    id: c.id,
+    nome: c.nome,
+    quantidade: c.documentos_repositorio.length,
+  }));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -57,46 +77,38 @@ export default async function PortalClientePage({ params }: Props) {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-6">
-        <div className="mb-5">
+        <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Olá, {cliente.nome}!</h1>
           <p className="text-gray-500 mt-1 text-sm">
-            Envie seus documentos para a declaração do Imposto de Renda. Clique em cada categoria e faça o upload dos arquivos.
+            Envie seus documentos para a declaração do Imposto de Renda.
           </p>
         </div>
 
-        {tudo_enviado && !declarouEnvio && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-5 flex items-center gap-3">
-            <CheckCircle2 className="w-6 h-6 text-green-600 shrink-0" />
-            <div>
-              <p className="font-semibold text-green-800">Tudo enviado!</p>
-              <p className="text-sm text-green-600">Todas as categorias têm arquivos. Clique em confirmar abaixo para avisar seu contador.</p>
-            </div>
-          </div>
-        )}
+        <div className="space-y-4">
+          {/* Card CPF — sempre visível se há categorias IR */}
+          {totalCats > 0 && (
+            <CardDeclaracaoPortal label="CPF" pct={pctCPF}>
+              <div className="px-4 py-4">
+                <PortalUpload
+                  clienteId={cliente.id}
+                  declarouEnvio={declarouEnvio}
+                  observacoes={observacoes}
+                  categorias={categoriasParaUpload}
+                />
+              </div>
+            </CardDeclaracaoPortal>
+          )}
 
-        <PortalRepositorio
-          clienteId={cliente.id}
-          repositorios={(repositorios ?? []).map((r) => ({
-            id: r.id,
-            tipo: r.tipo as "pf" | "pj",
-            categorias: r.categorias_repositorio.map((c) => ({
-              id: c.id,
-              nome: c.nome,
-              quantidade: c.documentos_repositorio.length,
-            })),
-          }))}
-        />
-
-        <PortalUpload
-          clienteId={cliente.id}
-          declarouEnvio={declarouEnvio}
-          observacoes={observacoes}
-          categorias={categorias?.map((c) => ({
-            id: c.id,
-            nome: c.nome,
-            quantidade: c.documentos.length,
-          })) ?? []}
-        />
+          {/* Card CNPJ — só se o repositório PJ estiver ativado */}
+          {repoPJ && (
+            <CardDeclaracaoPortal label="CNPJ" pct={pctCNPJ}>
+              <CategoriasRepoSemCard
+                repo={{ id: repoPJ.id, tipo: "pj", categorias: categoriasPJ }}
+                clienteId={cliente.id}
+              />
+            </CardDeclaracaoPortal>
+          )}
+        </div>
 
         <p className="text-center text-xs text-gray-400 mt-8">
           Seus arquivos são enviados de forma segura e criptografada. Apenas seu contador tem acesso.

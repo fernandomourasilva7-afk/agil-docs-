@@ -237,6 +237,40 @@ function CardRepositorio({
   );
 }
 
+function CategoriasRepoSemCard({
+  repo,
+  clienteId,
+}: {
+  repo: Repositorio;
+  clienteId: string;
+}) {
+  const cores = TIPO_COLOR[repo.tipo];
+  return (
+    <div className="px-4 pt-3 pb-4 space-y-2">
+      {repo.categorias.length === 0 ? (
+        <p className="text-sm text-gray-400 italic text-center py-4">
+          Nenhuma categoria configurada.
+        </p>
+      ) : (
+        repo.categorias.map((cat) => (
+          <CategoriaUpload
+            key={cat.id}
+            cat={cat}
+            clienteId={clienteId}
+            repositorioId={repo.id}
+            corBtn={cores.btn}
+          />
+        ))
+      )}
+      <p className="text-xs text-gray-400 pt-1">
+        Aceita: PDF, JPG, PNG, HEIC, DOC, DOCX, XLS, XLSX
+      </p>
+    </div>
+  );
+}
+
+export { CategoriasRepoSemCard };
+
 export default function PortalRepositorio({
   clienteId,
   repositorios,
