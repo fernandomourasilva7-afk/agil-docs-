@@ -190,63 +190,32 @@ function CardRepositorio({
   repo: Repositorio;
   clienteId: string;
 }) {
-  const Icon = TIPO_ICON[repo.tipo];
   const cores = TIPO_COLOR[repo.tipo];
+  const label = repo.tipo === "pf" ? "CPF" : "CNPJ";
   const totalEnviados = repo.categorias.reduce(
     (acc, c) => acc + (c.quantidade > 0 ? 1 : 0),
     0
   );
   const totalCats = repo.categorias.length;
-  const tudo = totalCats > 0 && totalEnviados === totalCats;
+  const pct = totalCats > 0 ? Math.round((totalEnviados / totalCats) * 100) : 0;
 
   return (
-    <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
-      {/* Header colorido */}
-      <div className={`${cores.header} px-4 py-4`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
-              <Icon className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <p className="text-white font-bold text-base leading-tight">
-                {TIPO_LABEL[repo.tipo]}
-              </p>
-              <p className="text-white/70 text-xs mt-0.5">
-                {totalCats} {totalCats === 1 ? "categoria" : "categorias"}
-              </p>
-            </div>
-          </div>
-          <span
-            className={`text-xs font-semibold px-3 py-1 rounded-full ${
-              tudo
-                ? "bg-green-400/20 text-green-100"
-                : totalEnviados > 0
-                ? "bg-white/20 text-white"
-                : "bg-white/10 text-white/60"
-            }`}
-          >
-            {tudo ? "Completo" : `${totalEnviados} / ${totalCats}`}
-          </span>
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      {/* Header estilo mockup */}
+      <div className="flex items-start justify-between px-5 pt-5 pb-4">
+        <div>
+          <p className="text-gray-400 text-sm font-medium">declaração</p>
+          <p className="text-4xl font-bold text-gray-900 mt-1">{label}</p>
         </div>
-
-        {/* Barra de progresso */}
-        {totalCats > 0 && (
-          <div className="mt-3 h-1.5 bg-white/20 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all ${
-                tudo ? "bg-green-400" : "bg-white/80"
-              }`}
-              style={{ width: `${Math.round((totalEnviados / totalCats) * 100)}%` }}
-            />
-          </div>
-        )}
+        <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-bold mt-1">
+          +{pct}%
+        </span>
       </div>
 
-      {/* Corpo com subcategorias */}
-      <div className="bg-gray-50 p-4 space-y-2">
+      {/* Sub-categorias */}
+      <div className="border-t border-gray-100 px-4 pt-3 pb-4 space-y-2">
         {repo.categorias.length === 0 ? (
-          <p className="text-sm text-gray-400 italic text-center py-2">
+          <p className="text-sm text-gray-400 italic text-center py-4">
             Nenhuma categoria configurada.
           </p>
         ) : (
@@ -278,21 +247,10 @@ export default function PortalRepositorio({
   if (repositorios.length === 0) return null;
 
   return (
-    <div className="mt-8 pt-6 border-t border-gray-200">
-      <div className="mb-4">
-        <h2 className="text-base font-bold text-gray-900">
-          Repositório Anual de Documentos
-        </h2>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Envie seus documentos ao longo do ano para facilitar sua declaração.
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        {repositorios.map((repo) => (
-          <CardRepositorio key={repo.id} repo={repo} clienteId={clienteId} />
-        ))}
-      </div>
+    <div className="space-y-4 mb-6">
+      {repositorios.map((repo) => (
+        <CardRepositorio key={repo.id} repo={repo} clienteId={clienteId} />
+      ))}
     </div>
   );
 }

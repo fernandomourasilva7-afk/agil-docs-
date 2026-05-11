@@ -39,18 +39,6 @@ export default async function PortalClientePage({ params }: Props) {
   const declarouEnvio = (cliente as { declarou_envio?: boolean }).declarou_envio ?? false;
   const pct = totalCats > 0 ? Math.round((preenchidas / totalCats) * 100) : 0;
 
-  const repoPF = repositorios?.find((r) => r.tipo === "pf") ?? null;
-  const repoPJ = repositorios?.find((r) => r.tipo === "pj") ?? null;
-  const calcPct = (repo: typeof repoPF) => {
-    if (!repo) return 0;
-    const total = repo.categorias_repositorio.length;
-    if (total === 0) return 0;
-    return Math.round((repo.categorias_repositorio.filter((c) => c.documentos_repositorio.length > 0).length / total) * 100);
-  };
-  const pctPF = calcPct(repoPF);
-  const pctPJ = calcPct(repoPJ);
-  const temRepositorios = !!repoPF || !!repoPJ;
-
   const observacoes: Record<string, string> = {};
   categorias?.forEach((c) => {
     const obs = (c as { observacao?: string | null }).observacao;
@@ -74,28 +62,6 @@ export default async function PortalClientePage({ params }: Props) {
           </p>
         </div>
 
-        {/* Cards de declaração CPF / CNPJ — só os ativados */}
-        {temRepositorios && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-            {([
-              { tipo: "pf", label: "CPF", repo: repoPF, pct: pctPF },
-              { tipo: "pj", label: "CNPJ", repo: repoPJ, pct: pctPJ },
-            ] as const).filter(({ repo }) => repo !== null).map(({ tipo, label, pct }) => (
-              <a key={tipo} href="#repositorio-anual" className="block group">
-                <div className="bg-white rounded-2xl border border-gray-200 p-6 group-hover:border-teal-300 group-hover:shadow-md transition-all">
-                  <p className="text-gray-400 text-sm">declaração</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-0.5">{label}</p>
-                  <div className="mt-3">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-sm font-semibold">
-                      +{pct}%
-                    </span>
-                  </div>
-                </div>
-              </a>
-            ))}
-          </div>
-        )}
-
         {tudo_enviado && !declarouEnvio && (
           <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-5 flex items-center gap-3">
             <CheckCircle2 className="w-6 h-6 text-green-600 shrink-0" />
@@ -106,18 +72,6 @@ export default async function PortalClientePage({ params }: Props) {
           </div>
         )}
 
-        <PortalUpload
-          clienteId={cliente.id}
-          declarouEnvio={declarouEnvio}
-          observacoes={observacoes}
-          categorias={categorias?.map((c) => ({
-            id: c.id,
-            nome: c.nome,
-            quantidade: c.documentos.length,
-          })) ?? []}
-        />
-
-        <div id="repositorio-anual">
         <PortalRepositorio
           clienteId={cliente.id}
           repositorios={(repositorios ?? []).map((r) => ({
@@ -130,7 +84,17 @@ export default async function PortalClientePage({ params }: Props) {
             })),
           }))}
         />
-        </div>
+
+        <PortalUpload
+          clienteId={cliente.id}
+          declarouEnvio={declarouEnvio}
+          observacoes={observacoes}
+          categorias={categorias?.map((c) => ({
+            id: c.id,
+            nome: c.nome,
+            quantidade: c.documentos.length,
+          })) ?? []}
+        />
 
         <p className="text-center text-xs text-gray-400 mt-8">
           Seus arquivos são enviados de forma segura e criptografada. Apenas seu contador tem acesso.
