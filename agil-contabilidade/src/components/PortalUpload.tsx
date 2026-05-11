@@ -36,7 +36,8 @@ export default function PortalUpload({
   const [arquivosSelecionados, setArquivosSelecionados] = useState<Record<string, File[]>>({});
   const [declarouEnvio, setDeclarouEnvio] = useState(declarouEnvioInicial);
   const [confirmando, setConfirmando] = useState(false);
-  const [mensagens, setMensagens] = useState<Record<string, string>>(mensagensIniciais);
+  const [mensagens, setMensagens] = useState<Record<string, string>>({});
+  const [mensagensEnviadas, setMensagensEnviadas] = useState<Record<string, string>>(mensagensIniciais);
   const [enviandoMsg, setEnviandoMsg] = useState<string | null>(null);
   const inputRefs = useRef<Record<string, HTMLInputElement>>({});
 
@@ -115,9 +116,20 @@ export default function PortalUpload({
     if (!texto) return;
     setEnviandoMsg(catId);
     const r = await salvarMensagemCliente(catId, texto, clienteSlug);
-    if (r.error) toast.error("Erro ao enviar mensagem.");
-    else toast.success("Mensagem enviada!");
+    if (r.error) {
+      toast.error("Erro ao enviar mensagem.");
+    } else {
+      toast.success("Mensagem enviada!");
+      setMensagens((prev) => ({ ...prev, [catId]: "" }));
+      setMensagensEnviadas((prev) => ({ ...prev, [catId]: texto }));
+    }
     setEnviandoMsg(null);
+  }
+
+  async function apagarMensagem(catId: string) {
+    const r = await salvarMensagemCliente(catId, "", clienteSlug);
+    if (r.error) toast.error("Erro ao apagar mensagem.");
+    else setMensagensEnviadas((prev) => ({ ...prev, [catId]: "" }));
   }
 
   async function confirmarEnvio() {
@@ -218,30 +230,44 @@ export default function PortalUpload({
 
                 <div className="mb-3">
                   <p className="text-xs font-medium text-gray-500 mb-1">Deixar mensagem para o contador:</p>
-                  <div className="flex gap-1.5">
-                    <input
-                      type="text"
-                      placeholder="Digite sua mensagem..."
-                      value={mensagens[cat.id] ?? ""}
-                      onChange={(e) => setMensagens((prev) => ({ ...prev, [cat.id]: e.target.value }))}
-                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); enviarMensagem(cat.id); } }}
-                      className="flex-1 text-sm border border-gray-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-teal-400"
-                    />
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => enviarMensagem(cat.id)}
-                      disabled={enviandoMsg === cat.id || !mensagens[cat.id]?.trim()}
-                    >
-                      {enviandoMsg === cat.id
-                        ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        : <SendHorizonal className="w-3.5 h-3.5" />}
-                      Enviar
-                    </Button>
-                  </div>
-                  {mensagensIniciais[cat.id] && (
-                    <p className="text-xs text-teal-700 mt-1">✓ Mensagem enviada anteriormente: &quot;{mensagensIniciais[cat.id]}&quot;</p>
+                  {mensagensEnviadas[cat.id] ? (
+                    <div className="flex items-start justify-between gap-2 bg-teal-50 border border-teal-200 rounded-lg px-3 py-2">
+                      <div>
+                        <p className="text-xs font-semibold text-teal-700 mb-0.5">Sua mensagem:</p>
+                        <p className="text-sm text-teal-800">{mensagensEnviadas[cat.id]}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => apagarMensagem(cat.id)}
+                        className="text-gray-400 hover:text-red-500 shrink-0 mt-0.5"
+                        title="Apagar mensagem"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        placeholder="Digite sua mensagem..."
+                        value={mensagens[cat.id] ?? ""}
+                        onChange={(e) => setMensagens((prev) => ({ ...prev, [cat.id]: e.target.value }))}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); enviarMensagem(cat.id); } }}
+                        className="flex-1 text-sm border border-gray-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-teal-400"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => enviarMensagem(cat.id)}
+                        disabled={enviandoMsg === cat.id || !mensagens[cat.id]?.trim()}
+                      >
+                        {enviandoMsg === cat.id
+                          ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          : <SendHorizonal className="w-3.5 h-3.5" />}
+                        Enviar
+                      </Button>
+                    </div>
                   )}
                 </div>
 
