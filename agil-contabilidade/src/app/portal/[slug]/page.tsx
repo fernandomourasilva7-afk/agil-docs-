@@ -74,33 +74,25 @@ export default async function PortalClientePage({ params }: Props) {
           </p>
         </div>
 
-        {/* Cards de declaração CPF / CNPJ */}
+        {/* Cards de declaração CPF / CNPJ — só os ativados */}
         {temRepositorios && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             {([
               { tipo: "pf", label: "CPF", repo: repoPF, pct: pctPF },
               { tipo: "pj", label: "CNPJ", repo: repoPJ, pct: pctPJ },
-            ] as const).map(({ tipo, label, repo, pct }) =>
-              repo ? (
-                <a key={tipo} href="#repositorio-anual" className="block group">
-                  <div className="bg-white rounded-2xl border border-gray-200 p-6 group-hover:border-teal-300 group-hover:shadow-md transition-all">
-                    <p className="text-gray-400 text-sm">declaração</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-0.5">{label}</p>
-                    <div className="mt-3">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-sm font-semibold">
-                        +{pct}%
-                      </span>
-                    </div>
-                  </div>
-                </a>
-              ) : (
-                <div key={tipo} className="rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/60 p-6">
+            ] as const).filter(({ repo }) => repo !== null).map(({ tipo, label, pct }) => (
+              <a key={tipo} href="#repositorio-anual" className="block group">
+                <div className="bg-white rounded-2xl border border-gray-200 p-6 group-hover:border-teal-300 group-hover:shadow-md transition-all">
                   <p className="text-gray-400 text-sm">declaração</p>
-                  <p className="text-3xl font-bold text-gray-300 mt-0.5">{label}</p>
-                  <p className="text-xs text-gray-400 mt-3">Não disponível</p>
+                  <p className="text-3xl font-bold text-gray-900 mt-0.5">{label}</p>
+                  <div className="mt-3">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-sm font-semibold">
+                      +{pct}%
+                    </span>
+                  </div>
                 </div>
-              )
-            )}
+              </a>
+            ))}
           </div>
         )}
 
